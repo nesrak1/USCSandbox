@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="AssetRipper.Primitives">
+      <HintPath>..\Libs\AssetRipper.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="AssetsTools.NET">
+      <HintPath>..\Libs\AssetsTools.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="MsgPack">
+      <HintPath>..\Libs\MsgPack.dll</HintPath>
+    </Reference>
+    <Reference Include="Ryujinx.Common">
+      <HintPath>..\Libs\Ryujinx.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Ryujinx.Graphics.Shader">
+      <HintPath>..\Libs\Ryujinx.Graphics.Shader.dll</HintPath>
+    </Reference>
+    <Reference Include="Ryujinx.ShaderTools">
+      <HintPath>..\Libs\Ryujinx.ShaderTools.dll</HintPath>
+    </Reference>
+    <Reference Include="Spv.Generator">
+      <HintPath>..\Libs\Spv.Generator.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
