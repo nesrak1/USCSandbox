@@ -171,12 +171,12 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Functi
             }
             else
             {
-                bool hasFrontFace = _shader.inputs.Any(i => i.name == "SV_IsFrontFace");
+                var frontFace = _shader.inputs.FirstOrDefault(i => i.type == "SV_IsFrontFace");
                 string args = $"{USILConstants.VERT_TO_FRAG_STRUCT_NAME} {USILConstants.FRAG_INPUT_NAME}";
-                if (hasFrontFace)
+                if (frontFace is not null)
                 {
                     // not part of v2f
-                    args += $", float facing: VFACE";
+                    args += $", {frontFace.format} {frontFace.name}: VFACE";
                 }
                 AppendLine($"{USILConstants.FRAG_OUTPUT_STRUCT_NAME} frag({args})");
             }
