@@ -13,8 +13,7 @@
             "unity_DynamicNormal",
             "unity_SpecCube0",
             "unity_SpecCube1",
-            "unity_ProbeVolumeSH",
-            "_ShadowMapTexture"
+            "unity_ProbeVolumeSH"
         };
 
         // TODO: same here
