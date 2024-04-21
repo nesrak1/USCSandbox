@@ -628,6 +628,14 @@ namespace USCSandbox.Processor
             var passes = subshader["m_Passes.Array"];
             foreach (var pass in passes)
             {
+                var usePassName = pass["m_UseName"].AsString;
+                if (!string.IsNullOrEmpty(usePassName))
+                {
+                    _sb.AppendLine($"UsePass \"{usePassName}\"");
+                    continue;
+                }
+                // if (pass != passes.Last())
+                //     continue;
                 _sb.AppendLine("Pass {");
                 _sb.Indent();
                 {
