@@ -555,7 +555,7 @@ namespace USCSandbox.Processor
                     SerializedPropertyType.Color => "Color",
                     SerializedPropertyType.Vector => "Vector",
                     SerializedPropertyType.Float => "Float",
-                    SerializedPropertyType.Range => $"Range({defValues[0]}, {defValues[1]})",
+                    SerializedPropertyType.Range => $"Range({defValues[1]}, {defValues[2]})",
                     SerializedPropertyType.Texture => defTextureDim switch
                     {
                         1 => "any",
