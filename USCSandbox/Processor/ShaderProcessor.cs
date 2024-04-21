@@ -93,19 +93,116 @@ namespace USCSandbox.Processor
             _sb.AppendLine("CGPROGRAM");
 
             var defineSb = new StringBuilder();
-            var structSb = new StringBuilder();
-            var cbufferSb = new StringBuilder();
-            var texSb = new StringBuilder();
-            var memeSb = new StringBuilder();
-            var codeSb = new StringBuilder();
-            var declaredCBufs = new HashSet<string>();
+            var passSb = new StringBuilder();
+            
             defineSb.AppendLine(new string(' ', depth * 4));
-            structSb.AppendLine(new string(' ', depth * 4));
-            foreach (var basket in baskets)
+            passSb.AppendLine(new string(' ', depth * 4));
+            var basketsInfo = baskets
+                .Select(x => 
+                new 
+                {
+                    progInfo = x.ProgramInfo,
+                    subProgInfo = x.SubProgramInfo,
+                    index = x.ParameterBlobIndex,
+                    subProg = blobManager.GetShaderSubProgram((int)x.SubProgramInfo.BlobIndex)
+                })
+                .OrderBy(x => x.subProg.GetProgramType(_engVer))
+                .ThenByDescending(x => x.subProg.GlobalKeywords.Concat(x.subProg.LocalKeywords).Count())
+                .ToList();
+
+            var subPrograms = basketsInfo.Select(x => x.subProg).ToList();
+            ShaderGpuProgramType[] vertTypes = [ShaderGpuProgramType.DX11VertexSM40, ShaderGpuProgramType.ConsoleVS];
+            ShaderGpuProgramType[] fragTypes = [ShaderGpuProgramType.DX11PixelSM40, ShaderGpuProgramType.ConsoleFS];
+            var firstVert = subPrograms.FirstOrDefault(x => vertTypes.Contains(x.GetProgramType(_engVer)));
+            var firstFrag = subPrograms.FirstOrDefault(x => fragTypes.Contains(x.GetProgramType(_engVer)));
+            
+            if (firstVert is not null)
             {
-                var progInfo = basket.ProgramInfo;
-                var subProgInfo = basket.SubProgramInfo;
-                var index = basket.ParameterBlobIndex;
+                defineSb.Append(new string(' ', depth * 4));
+                defineSb.AppendLine("#pragma vertex vert");
+            }
+
+            if (firstFrag is not null)
+            {
+                defineSb.Append(new string(' ', depth * 4));
+                defineSb.AppendLine("#pragma fragment frag");
+            }
+
+            defineSb.AppendLine();
+
+            var allKeywordsCombinations = subPrograms.Select(x => x.GlobalKeywords.Concat(x.LocalKeywords).Order()).ToList();
+            HashSet<string> allUniqueKeywords = allKeywordsCombinations.SelectMany(x => x).ToHashSet();
+            int leastKeywordsAmount = allKeywordsCombinations.Min(x => x.Count());
+            List<string> mandatoryKeywords = [];
+            
+            List<string> optionalKeywords = new List<string>();
+            foreach (string keyword in allUniqueKeywords)
+            {
+                if (allKeywordsCombinations.All(x => x.Contains(keyword)))
+                {
+                    defineSb.Append(new string(' ', depth * 4));
+                    defineSb.AppendLine($"#pragma multi_compile {keyword}");
+                    mandatoryKeywords.Add(keyword);
+                }
+                else
+                {
+                    optionalKeywords.Add(keyword);
+                }
+            }
+
+            if (leastKeywordsAmount > mandatoryKeywords.Count)
+            {
+                var leastAmountCombinations = allKeywordsCombinations
+                    .Where(x => x.Count() == leastKeywordsAmount)
+                    .Select(x => x.Except(mandatoryKeywords).ToList())
+                    .ToList();
+                int multiCompileKeywordIndex = 0;
+                while (multiCompileKeywordIndex < leastKeywordsAmount - mandatoryKeywords.Count)
+                {
+                    var multiCompileKeywords = leastAmountCombinations
+                        .Select(x => x[multiCompileKeywordIndex])
+                        .ToHashSet();
+                
+                    defineSb.Append(new string(' ', depth * 4));
+                    defineSb.AppendLine($"#pragma multi_compile {string.Join(" ", multiCompileKeywords)}");
+                    optionalKeywords = optionalKeywords.Except(multiCompileKeywords).ToList();
+                    multiCompileKeywordIndex++;
+                }
+            }
+
+            foreach (string keyword in optionalKeywords)
+            {
+                defineSb.Append(new string(' ', depth * 4));
+                defineSb.AppendLine($"#pragma shader_feature {keyword}");
+            }
+            
+            bool encounterdVert = false;
+            bool encounterdFrag = false;
+            
+            var declaredCBufs = subPrograms
+                .Select(x => String.Join("-", x.GlobalKeywords.Concat(x.LocalKeywords).Order()))
+                .Distinct()
+                .ToDictionary(x => x, _ => new HashSet<string>());
+            
+            var lastVertext = basketsInfo.LastOrDefault(x => vertTypes.Contains(x.subProg.GetProgramType(_engVer)));
+            var lastFragment = basketsInfo.LastOrDefault(x => fragTypes.Contains(x.subProg.GetProgramType(_engVer)));
+
+            bool noVertexVariants = subPrograms.Count(x => vertTypes.Contains(x.GetProgramType(_engVer))) <= 1;
+            bool noFragmentVariants = subPrograms.Count(x => fragTypes.Contains(x.GetProgramType(_engVer))) <= 1;
+            
+            foreach (var basket in basketsInfo)
+            {
+                // if (basket != basketsInfo.Last())
+                //     continue;
+                var structSb = new StringBuilder();
+                var cbufferSb = new StringBuilder();
+                var texSb = new StringBuilder();
+                var memeSb = new StringBuilder();
+                var codeSb = new StringBuilder();
+                
+                var progInfo = basket.progInfo;
+                var subProgInfo = basket.subProgInfo;
+                var index = basket.index;
 
                 var subProg = blobManager.GetShaderSubProgram((int)subProgInfo.BlobIndex);
                 File.WriteAllBytes($"dbg_entry_data_{subProgInfo.BlobIndex}.bin", subProg.ProgramData);
@@ -120,25 +217,88 @@ namespace USCSandbox.Processor
                     param = subProg.ShaderParams;
                 }
 
-                Console.WriteLine($"working on {basket.SubProgramInfo.BlobIndex}");
+                //Console.WriteLine($"working on {basket.SubProgramInfo.BlobIndex}");
 
                 param.CombineCommon(progInfo);
 
                 var programType = subProg.GetProgramType(_engVer);
                 var graphicApi = _platformId;
 
-                defineSb.Append(new string(' ', depth * 4));
-                defineSb.AppendLine(programType switch
+                // defineSb.Append(new string(' ', depth * 4));
+                // defineSb.AppendLine(programType switch
+                // {
+                //     ShaderGpuProgramType.DX11VertexSM40 => "#pragma vertex vert",
+                //     ShaderGpuProgramType.DX11PixelSM40 => "#pragma fragment frag",
+                //     ShaderGpuProgramType.ConsoleVS => "#pragma vertex vert",
+                //     ShaderGpuProgramType.ConsoleFS => "#pragma fragment frag",
+                //     _ => $"// unknown shader type {programType}"
+                // });
+
+                var keywords = subProg.GlobalKeywords.Concat(subProg.LocalKeywords).Order().ToArray();
+
+                if ((!noVertexVariants && basket == lastVertext) || (!noFragmentVariants && basket == lastFragment))
                 {
-                    ShaderGpuProgramType.DX11VertexSM40 => "#pragma vertex vert",
-                    ShaderGpuProgramType.DX11PixelSM40 => "#pragma fragment frag",
-                    ShaderGpuProgramType.ConsoleVS => "#pragma vertex vert",
-                    ShaderGpuProgramType.ConsoleFS => "#pragma fragment frag",
-                    _ => $"// unknown shader type {programType}"
-                });
+                    structSb.AppendLine();
+                    structSb.Append(new string(' ', depth * 4));
+                    structSb.Append("#else");
+                }
+                else if ((!noVertexVariants && programType == ShaderGpuProgramType.DX11VertexSM40)
+                        || (!noFragmentVariants && programType == ShaderGpuProgramType.DX11PixelSM40))
+                {
+                    string preprocessorDirective;
+                    if ((!encounterdVert && programType == ShaderGpuProgramType.DX11VertexSM40)
+                        || (!encounterdFrag && programType == ShaderGpuProgramType.DX11PixelSM40))
+                    {
+                        preprocessorDirective = "if";
+                        if (programType == ShaderGpuProgramType.DX11VertexSM40)
+                        {
+                            encounterdVert = true;
+                        }
+                        else
+                        {
+                            encounterdFrag = true;
+                            structSb.Append(new string(' ', depth * 4));
+                            structSb.AppendLine("#endif");
+                            structSb.AppendLine();
+                        }
+                    }
+                    else
+                    {
+                        preprocessorDirective = "elif";
+                    }
+                
+                    structSb.AppendLine();
+                    structSb.Append(new string(' ', depth * 4));
+                    structSb.Append($"#{preprocessorDirective} {string.Join(" && ", keywords)}");
+                }
+                // if (!keywords.SequenceEqual(["FOG_LINEAR", "POINT", "SHADOWS_CUBE", "SHADOWS_SOFT"]))
+                //     continue;
+                
+                // if ((!encounterdVert && programType == ShaderGpuProgramType.DX11VertexSM40)
+                //     || (!encounterdFrag && programType == ShaderGpuProgramType.DX11PixelSM40))
+                // {
+                    cbufferSb.Append(new string(' ', depth * 4));
+                    cbufferSb.AppendLine($"// CBs for {programType}");
+                //}
+                foreach (ConstantBuffer cbuffer in param.ConstantBuffers)
+                {
+                    //if (!UnityShaderConstants.BUILTIN_CBUFFER_NAMES.Contains(cbuffer.Name))
+                    {
+                        cbufferSb.Append(WritePassCBuffer(param, declaredCBufs[string.Join("-", keywords)], cbuffer, depth));
+                    }
+                }
 
-                var keywords = subProg.GlobalKeywords.Concat(subProg.LocalKeywords);
+                //cbufferSb.AppendLine();
+                // if ((!encounterdVert && programType == ShaderGpuProgramType.DX11VertexSM40)
+                //     || (!encounterdFrag && programType == ShaderGpuProgramType.DX11PixelSM40))
+                // {
+                    texSb.Append(new string(' ', depth * 4));
+                    texSb.AppendLine($"// Textures for {programType}");
+                //}
 
+                texSb.Append(WritePassTextures(param, declaredCBufs[string.Join("-", keywords)], depth));
+                //texSb.AppendLine();
+                
                 switch (programType)
                 {
                     case ShaderGpuProgramType.DX11VertexSM40:
@@ -159,11 +319,46 @@ namespace USCSandbox.Processor
                         conv.ApplyMetadataToProgram(subProg, param, _engVer);
 
                         UShaderFunctionToHLSL hlslConverter = new UShaderFunctionToHLSL(conv.ShaderProgram!, depth);
+                        
+
+                        //string preprocessorDirective;
+                        if ((!encounterdVert && programType == ShaderGpuProgramType.DX11VertexSM40)
+                            || (!encounterdFrag && programType == ShaderGpuProgramType.DX11PixelSM40))
+                        {
+                            
+
+                            //preprocessorDirective = "if";
+
+                            // codeSb.AppendLine();
+                            // codeSb.Append(new string(' ', depth * 4));
+                            // codeSb.Append("#if " + string.Join(" && ", keywords));
+                            // var keywordsSet = programType == ShaderGpuProgramType.DX11VertexSM40
+                            //     ? vertextUniqueKeywords
+                            //     : fragmentUniqueKeywords;
+                            // foreach (string excludedKeyword in keywordsSet.Except(keywords))
+                            // {
+                            //     codeSb.Append(" && ");
+                            //     codeSb.Append("!" + excludedKeyword);
+                            // }
+                            // codeSb.AppendLine();
+                        }
+                        else
+                        {
+                            //preprocessorDirective = "elif";
+                        }
+                        
+                        // structSb.AppendLine();
+                        // structSb.Append(new string(' ', depth * 4));
+                        // structSb.Append($"#{preprocessorDirective} {string.Join(" && ", keywords)}");
+                        // codeSb.AppendLine();
+                        // codeSb.Append(new string(' ', depth * 4));
+                        // codeSb.Append($"#{preprocessorDirective} {string.Join(" && ", keywords)}");
+
+                        structSb.AppendLine();
+                        codeSb.AppendLine();
+                        
                         structSb.Append(hlslConverter.WriteStruct());
                         structSb.AppendLine();
-
-                        codeSb.Append(new string(' ', depth * 4));
-                        codeSb.AppendLine("// Keywords: " + string.Join(", ", keywords));
                         codeSb.Append(hlslConverter.WriteFunction());
 
                         break;
@@ -177,8 +372,16 @@ namespace USCSandbox.Processor
                         conv.ApplyMetadataToProgram(subProg, param, _engVer);
 
                         UShaderFunctionToHLSL hlslConverter = new UShaderFunctionToHLSL(conv.ShaderProgram!, depth);
-                        structSb.Append(hlslConverter.WriteStruct());
-                        structSb.AppendLine();
+                        if ((!encounterdVert && programType == ShaderGpuProgramType.ConsoleVS)
+                            || (!encounterdFrag && programType == ShaderGpuProgramType.ConsoleFS))
+                        {
+                            structSb.Append(hlslConverter.WriteStruct());
+                            structSb.AppendLine();
+                            if (programType == ShaderGpuProgramType.ConsoleVS)
+                                encounterdVert = true;
+                            else
+                                encounterdFrag = true;
+                        }
 
                         codeSb.Append(new string(' ', depth * 4));
                         codeSb.AppendLine("// Keywords: " + string.Join(", ", keywords));
@@ -187,30 +390,21 @@ namespace USCSandbox.Processor
                         break;
                     }
                 }
+                passSb.Append(structSb.ToString());
+                passSb.Append(cbufferSb.ToString());
+                passSb.Append(texSb.ToString());
+                passSb.Append(memeSb.ToString());
+                passSb.Append(codeSb.ToString());
+            }
 
-                cbufferSb.Append(new string(' ', depth * 4));
-                cbufferSb.AppendLine($"// CBs for {programType}");
-                foreach (ConstantBuffer cbuffer in param.ConstantBuffers)
-                {
-                    //if (!UnityShaderConstants.BUILTIN_CBUFFER_NAMES.Contains(cbuffer.Name))
-                    {
-                        cbufferSb.Append(WritePassCBuffer(param, declaredCBufs, cbuffer, depth));
-                    }
-                }
-                cbufferSb.AppendLine();
-
-                texSb.Append(new string(' ', depth * 4));
-                texSb.AppendLine($"// Textures for {programType}");
-                texSb.Append(WritePassTextures(param, declaredCBufs, depth));
-                texSb.AppendLine();
+            if (!noFragmentVariants)
+            {
+                passSb.Append(new string(' ', depth * 4));
+                passSb.AppendLine("#endif");
             }
 
             _sb.AppendNoIndent(defineSb.ToString());
-            _sb.AppendNoIndent(structSb.ToString());
-            _sb.AppendNoIndent(cbufferSb.ToString());
-            _sb.AppendNoIndent(texSb.ToString());
-            _sb.AppendNoIndent(memeSb.ToString());
-            _sb.AppendNoIndent(codeSb.ToString());
+            _sb.AppendNoIndent(passSb.ToString());
 
             _sb.AppendLine("ENDCG");
             _sb.AppendLine("");
@@ -444,24 +638,80 @@ namespace USCSandbox.Processor
                     var vertProgInfos = vertInfo.GetForPlatform((int)GetVertexProgramForPlatform(_platformId));
                     var fragProgInfos = fragInfo.GetForPlatform((int)GetFragmentProgramForPlatform(_platformId));
 
-                    if (vertProgInfos.Count != fragProgInfos.Count && fragProgInfos.Count > 0)
-                    {
-                        throw new Exception("Vert and frag program count should be the same");
-                    }
+                    // if (vertProgInfos.Count != fragProgInfos.Count && fragProgInfos.Count > 0)
+                    // {
+                    //     throw new Exception("Vert and frag program count should be the same");
+                    // }
 
                     // we should hopefully only have one of each type, but just in case...
                     // todo: cleanup
-                    if (vertProgInfos.Count > 0 && fragProgInfos.Count > 0)
+                    List<ShaderProgramBasket> baskets = [];
+                    for (var i = 0; i < vertProgInfos.Count; i++)
+                    {
+                        baskets.Add(new ShaderProgramBasket(vertInfo, vertProgInfos[i],
+                            vertInfo.ParameterBlobIndices.Count > 0 ? (int)vertInfo.ParameterBlobIndices[i] : -1));
+                    }
+                    for (var i = 0; i < fragProgInfos.Count; i++)
+                    {
+                        baskets.Add(new ShaderProgramBasket(fragInfo, fragProgInfos[i],
+                            fragInfo.ParameterBlobIndices.Count > 0 ? (int)fragInfo.ParameterBlobIndices[i] : -1));
+                    }
+                    if (baskets.Count > 0)
+                        WritePassBody(blobManager, baskets, _sb.GetIndent());
+
+                    /*for (var i = 0; i < vertProgInfos.Count; i++)
+                    {
+                        var test = blobManager.GetShaderSubProgram((int)vertProgInfos[i].BlobIndex);
+                        var keys = test.GlobalKeywords.Concat(test.LocalKeywords).ToArray();
+                        if (!(keys.SequenceEqual(["DUMMY"]) || keys.SequenceEqual(["DIRECTIONAL", "DUMMY"])))
+                        {
+                            continue;
+                        }
+
+                        int fragId = -1;
+                        for (var j = 0; j < fragProgInfos.Count; j++)
+                        {
+                            test = blobManager.GetShaderSubProgram((int)fragProgInfos[j].BlobIndex);
+                            keys = test.GlobalKeywords.Concat(test.LocalKeywords).ToArray();
+                            if (!(keys.SequenceEqual(["DUMMY"]) || keys.SequenceEqual(["DIRECTIONAL", "DUMMY"])))
+                            {
+                                continue;
+                            }
+
+                            fragId = j;
+                            break;
+                        }
+
+                        List<ShaderProgramBasket> baskets;
+                        if (vertInfo.ParameterBlobIndices.Count > 0) //&& fragInfo.ParameterBlobIndices.Count > 0)
+                        {
+                            baskets = new List<ShaderProgramBasket>
+                            {
+                                new ShaderProgramBasket(vertInfo, vertProgInfos[i], (int)vertInfo.ParameterBlobIndices[i]),
+                                new ShaderProgramBasket(fragInfo, fragProgInfos[fragId], (int)fragInfo.ParameterBlobIndices[fragId])
+                            };
+                        }
+                        else
+                        {
+                            baskets = new List<ShaderProgramBasket>
+                            {
+                                new ShaderProgramBasket(vertInfo, vertProgInfos[i], -1),
+                                new ShaderProgramBasket(fragInfo, fragProgInfos[fragId], -1)
+                            };
+                        }
+                        WritePassBody(blobManager, baskets, _sb.GetIndent());
+                    }*/
+                    /*if (vertProgInfos.Count > 0 && fragProgInfos.Count > 0)
                     {
                         for (var i = 0; i < vertProgInfos.Count; i++)
                         {
                             List<ShaderProgramBasket> baskets;
-                            if (vertInfo.ParameterBlobIndices.Count > 0 && fragInfo.ParameterBlobIndices.Count > 0)
+                            if (vertInfo.ParameterBlobIndices.Count > 0 && vertInfo.ParameterBlobIndices.Count > 0)
                             {
                                 baskets = new List<ShaderProgramBasket>
                                 {
                                     new ShaderProgramBasket(vertInfo, vertProgInfos[i], (int)vertInfo.ParameterBlobIndices[i]),
-                                    new ShaderProgramBasket(fragInfo, fragProgInfos[i], (int)fragInfo.ParameterBlobIndices[i])
+                                    //new ShaderProgramBasket(fragInfo, fragProgInfos[i], (int)fragInfo.ParameterBlobIndices[i])
                                 };
                             }
                             else
@@ -469,7 +719,28 @@ namespace USCSandbox.Processor
                                 baskets = new List<ShaderProgramBasket>
                                 {
                                     new ShaderProgramBasket(vertInfo, vertProgInfos[i], -1),
-                                    new ShaderProgramBasket(fragInfo, fragProgInfos[i], -1)
+                                    //new ShaderProgramBasket(fragInfo, fragProgInfos[i], -1)
+                                };
+                            }
+                            WritePassBody(blobManager, baskets, _sb.GetIndent());
+                        }
+                        for (var i = 0; i < fragProgInfos.Count; i++)
+                        {
+                            List<ShaderProgramBasket> baskets;
+                            if (vertInfo.ParameterBlobIndices.Count > 0 && fragInfo.ParameterBlobIndices.Count > 0)
+                            {
+                                baskets = new List<ShaderProgramBasket>
+                                {
+                                    new ShaderProgramBasket(fragInfo, fragProgInfos[i], (int)fragInfo.ParameterBlobIndices[i]),
+                                    //new ShaderProgramBasket(fragInfo, fragProgInfos[i], (int)fragInfo.ParameterBlobIndices[i])
+                                };
+                            }
+                            else
+                            {
+                                baskets = new List<ShaderProgramBasket>
+                                {
+                                    new ShaderProgramBasket(fragInfo, fragProgInfos[i], -1),
+                                    //new ShaderProgramBasket(fragInfo, fragProgInfos[i], -1)
                                 };
                             }
                             WritePassBody(blobManager, baskets, _sb.GetIndent());
@@ -496,7 +767,7 @@ namespace USCSandbox.Processor
                             }
                             WritePassBody(blobManager, baskets, _sb.GetIndent());
                         }
-                    }
+                    }*/
                 }
                 _sb.Unindent();
                 _sb.AppendLine("}");
