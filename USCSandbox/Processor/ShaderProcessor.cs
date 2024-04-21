@@ -420,12 +420,12 @@ namespace USCSandbox.Processor
                 bool nonGlobalCbuffer = cbuffer.Name != "$Globals";
                 int cbufferIndex = shaderParams.ConstantBuffers.IndexOf(cbuffer);
 
-                if (nonGlobalCbuffer)
-                {
-                    sb.Append(new string(' ', depth * 4)); // todo: new stringbuilder
-                    sb.AppendLine($"CBUFFER_START({cbuffer.Name}) // {cbufferIndex}");
-                    depth++;
-                }
+                // if (nonGlobalCbuffer)
+                // {
+                //     sb.Append(new string(' ', depth * 4)); // todo: new stringbuilder
+                //     sb.AppendLine($"// CBUFFER_START({cbuffer.Name}) // {cbufferIndex}");
+                //     depth++;
+                // }
 
                 char[] chars = new char[] { 'x', 'y', 'z', 'w' };
                 List<ConstantBufferParameter> allParams = cbuffer.CBParams;
@@ -445,23 +445,27 @@ namespace USCSandbox.Processor
                         if (param.ArraySize > 0)
                         {
                             sb.Append(new string(' ', depth * 4));
+                            if (nonGlobalCbuffer)
+                                sb.Append("// ");
                             sb.AppendLine($"{typeName} {name}[{param.ArraySize}]; // {param.Index} (starting at cb{cbufferIndex}[{param.Index / 16}].{chars[param.Index % 16 / 4]})");
                         }
                         else
                         {
                             sb.Append(new string(' ', depth * 4));
+                            if (nonGlobalCbuffer && !cbuffer.Name.StartsWith("UnityPerDrawSprite"))
+                                sb.Append("// ");
                             sb.AppendLine($"{typeName} {name}; // {param.Index} (starting at cb{cbufferIndex}[{param.Index / 16}].{chars[param.Index % 16 / 4]})");
                         }
                         declaredCBufs.Add(name);
                     }
                 }
 
-                if (nonGlobalCbuffer)
-                {
-                    depth--;
-                    sb.Append(new string(' ', depth * 4));
-                    sb.AppendLine("CBUFFER_END");
-                }
+                // if (nonGlobalCbuffer)
+                // {
+                //     depth--;
+                //     sb.Append(new string(' ', depth * 4));
+                //     sb.AppendLine("// CBUFFER_END");
+                // }
             }
             return sb.ToString();
         }
