@@ -1288,8 +1288,8 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
 
             int[] mask = new int[] { 0, 1 };
             FillUSILOperand(dest, usilDest, dest.swizzle, false);
-            FillUSILOperand(src0, usilSrc0, MapMask(mask, src0.swizzle), false);
-            FillUSILOperand(src1, usilSrc1, MapMask(mask, src1.swizzle), false);
+            FillUSILOperand(src0, usilSrc0, src0.swizzle.Length >= 2 ? src0.swizzle[..2] : src0.swizzle, false);
+            FillUSILOperand(src1, usilSrc1, src1.swizzle.Length >= 2 ? src1.swizzle[..2] : src1.swizzle, false);
 
             usilInst.instructionType = USILInstructionType.DotProduct2;
             usilInst.destOperand = usilDest;
@@ -1316,8 +1316,8 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
 
             int[] mask = new int[] { 0, 1, 2 };
             FillUSILOperand(dest, usilDest, dest.swizzle, false);
-            FillUSILOperand(src0, usilSrc0, MapMask(mask, src0.swizzle), false);
-            FillUSILOperand(src1, usilSrc1, MapMask(mask, src1.swizzle), false);
+            FillUSILOperand(src0, usilSrc0, src0.swizzle.Length >= 3 ? src0.swizzle[..3] : src0.swizzle, false);
+            FillUSILOperand(src1, usilSrc1, src1.swizzle.Length >= 3 ? src1.swizzle[..3] : src1.swizzle, false);
 
             usilInst.instructionType = USILInstructionType.DotProduct3;
             usilInst.destOperand = usilDest;
@@ -1344,8 +1344,8 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
 
             int[] mask = new int[] { 0, 1, 2, 3 };
             FillUSILOperand(dest, usilDest, dest.swizzle, false);
-            FillUSILOperand(src0, usilSrc0, MapMask(mask, src0.swizzle), false);
-            FillUSILOperand(src1, usilSrc1, MapMask(mask, src1.swizzle), false);
+            FillUSILOperand(src0, usilSrc0, src0.swizzle, false);
+            FillUSILOperand(src1, usilSrc1, src1.swizzle, false);
 
             usilInst.instructionType = USILInstructionType.DotProduct4;
             usilInst.destOperand = usilDest;
