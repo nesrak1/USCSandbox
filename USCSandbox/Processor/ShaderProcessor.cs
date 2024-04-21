@@ -62,6 +62,8 @@ namespace USCSandbox.Processor
             {
                 WriteProperties(parsedForm["m_PropInfo"]);
                 WriteSubShaders(blobManager, parsedForm);
+                if (!string.IsNullOrEmpty(parsedForm["m_FallbackName"].AsString))
+                    _sb.AppendLine($"Fallback \"{parsedForm["m_FallbackName"].AsString}\"");
             }
             _sb.Unindent();
             _sb.AppendLine("}");
