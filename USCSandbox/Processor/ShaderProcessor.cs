@@ -1024,19 +1024,19 @@ namespace USCSandbox.Processor
                 }
                 else
                 {
-                    if (colMask == ColorWriteMask.Red)
+                    if ((colMask & ColorWriteMask.Red) == ColorWriteMask.Red)
                     {
                         _sb.AppendNoIndent("R");
                     }
-                    else if (colMask == ColorWriteMask.Green)
+                    if ((colMask & ColorWriteMask.Green) == ColorWriteMask.Green)
                     {
                         _sb.AppendNoIndent("G");
                     }
-                    else if (colMask == ColorWriteMask.Blue)
+                    if ((colMask & ColorWriteMask.Blue) == ColorWriteMask.Blue)
                     {
                         _sb.AppendNoIndent("B");
                     }
-                    else if (colMask == ColorWriteMask.Alpha)
+                    if ((colMask & ColorWriteMask.Alpha) == ColorWriteMask.Alpha)
                     {
                         _sb.AppendNoIndent("A");
                     }
