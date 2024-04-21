@@ -40,10 +40,24 @@ namespace USCSandbox.Processor
             var compressedBlob = _shaderBf["compressedBlob.Array"].AsByteArray;
 
             var selectedIndex = platforms.IndexOf((int)_platformId);
-
-            var selectedOffset = offsets[selectedIndex]["Array"][0].AsUInt;
-            var selectedCompressedLength = compressedLengths[selectedIndex]["Array"][0].AsUInt;
-            var selectedDecompressedLength = decompressedLengths[selectedIndex]["Array"][0].AsUInt;
+            
+            uint selectedOffset;
+            if (offsets[selectedIndex].Children.Count > 0)
+                selectedOffset = offsets[selectedIndex]["Array"][0].AsUInt;
+            else
+                selectedOffset = offsets[selectedIndex].AsUInt;
+            
+            uint selectedCompressedLength;
+            if (compressedLengths[selectedIndex].Children.Count > 0)
+                selectedCompressedLength = compressedLengths[selectedIndex]["Array"][0].AsUInt;
+            else
+                selectedCompressedLength = compressedLengths[selectedIndex].AsUInt;
+            
+            uint selectedDecompressedLength;
+            if (offsets[selectedIndex].Children.Count > 0)
+                selectedDecompressedLength = decompressedLengths[selectedIndex]["Array"][0].AsUInt;
+            else
+                selectedDecompressedLength = decompressedLengths[selectedIndex].AsUInt;
 
             var decompressedBlob = new byte[selectedDecompressedLength];
             var lz4Decoder = new Lz4DecoderStream(new MemoryStream(compressedBlob));
