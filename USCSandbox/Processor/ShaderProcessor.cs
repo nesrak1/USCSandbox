@@ -820,10 +820,28 @@ namespace USCSandbox.Processor
             var stencilRef = state["stencilRef.val"].AsFloat;
             var stencilReadMask = state["stencilReadMask.val"].AsFloat;
             var stencilWriteMask = state["stencilWriteMask.val"].AsFloat;
-            var stencilOp = state["stencilOp"];
-            var stencilOpFront = state["stencilOpFront"];
-            var stencilOpBack = state["stencilOpBack"];
+            var stencilOpPass = (StencilOp)(int)state["stencilOp.pass.val"].AsFloat;
+            var stencilOpFail = (StencilOp)(int)state["stencilOp.fail.val"].AsFloat;
+            var stencilOpZfail = (StencilOp)(int)state["stencilOp.zFail.val"].AsFloat;
+            var stencilOpComp = (StencilComp)(int)state["stencilOp.comp.val"].AsFloat;
+            var stencilOpFrontPass = (StencilOp)(int)state["stencilOpFront.pass.val"].AsFloat;
+            var stencilOpFrontFail = (StencilOp)(int)state["stencilOpFront.fail.val"].AsFloat;
+            var stencilOpFrontZfail = (StencilOp)(int)state["stencilOpFront.zFail.val"].AsFloat;
+            var stencilOpFrontComp = (StencilComp)(int)state["stencilOpFront.comp.val"].AsFloat;
+            var stencilOpBackPass = (StencilOp)(int)state["stencilOpBack.pass.val"].AsFloat;
+            var stencilOpBackFail = (StencilOp)(int)state["stencilOpBack.fail.val"].AsFloat;
+            var stencilOpBackZfail = (StencilOp)(int)state["stencilOpBack.zFail.val"].AsFloat;
+            var stencilOpBackComp = (StencilComp)(int)state["stencilOpBack.comp.val"].AsFloat;
+            var fogMode = (FogMode)(int)state["fogMode"].AsFloat;
+            var fogColorX = state["fogColor.x.val"].AsFloat;
+            var fogColorY = state["fogColor.y.val"].AsFloat;
+            var fogColorZ = state["fogColor.z.val"].AsFloat;
+            var fogColorW = state["fogColor.w.val"].AsFloat;
+            var fogDensity = state["fogDensity.val"].AsFloat;
+            var fogStart = state["fogStart.val"].AsFloat;
+            var fogEnd = state["fogEnd.val"].AsFloat;
 
+            
             var lighting = state["lighting"].AsBool;
 
             if (alphaToMask > 0f)
@@ -838,9 +856,9 @@ namespace USCSandbox.Processor
             {
                 _sb.AppendLine($"ZTest {zTest}");
             }
-            if (zWrite == ZWrite.On)
+            if (zWrite != ZWrite.On)
             {
-                _sb.AppendLine("ZWrite On");
+                _sb.AppendLine($"ZWrite {zWrite}");
             }
             if (culling != CullMode.Back)
             {
@@ -850,6 +868,88 @@ namespace USCSandbox.Processor
             {
                 _sb.AppendLine($"Offset {offsetFactor}, {offsetUnits}");
             }
+            
+            if (stencilRef != 0.0 || stencilReadMask != 255.0 || stencilWriteMask != 255.0
+                || !(stencilOpPass == StencilOp.Keep && stencilOpFail == StencilOp.Keep && stencilOpZfail == StencilOp.Keep && stencilOpComp == StencilComp.Always)
+                || !(stencilOpFrontPass == StencilOp.Keep && stencilOpFrontFail == StencilOp.Keep && stencilOpFrontZfail == StencilOp.Keep && stencilOpFrontComp == StencilComp.Always)
+                || !(stencilOpBackPass == StencilOp.Keep && stencilOpBackFail == StencilOp.Keep && stencilOpBackZfail == StencilOp.Keep && stencilOpBackComp == StencilComp.Always))
+			{
+				_sb.AppendLine("Stencil {");
+                _sb.Indent();
+				if (stencilRef != 0.0)
+				{
+                    _sb.AppendLine($"Ref {stencilRef}");
+				}
+				if (stencilReadMask != 255.0)
+				{
+                    _sb.AppendLine($"ReadMask {stencilReadMask}");
+				}
+				if (stencilWriteMask != 255.0)
+				{
+                    _sb.AppendLine($"WriteMask {stencilWriteMask}");
+				}
+				if (stencilOpPass != StencilOp.Keep
+                    || stencilOpFail != StencilOp.Keep
+                    || stencilOpZfail != StencilOp.Keep
+                    || (stencilOpComp != StencilComp.Always && stencilOpComp != StencilComp.Disabled))
+				{
+                    _sb.AppendLine($"Comp {stencilOpComp}");
+                    _sb.AppendLine($"Pass {stencilOpPass}");
+                    _sb.AppendLine($"Fail {stencilOpFail}");
+                    _sb.AppendLine($"ZFail {stencilOpZfail}");
+				}
+				if (stencilOpFrontPass != StencilOp.Keep
+                    || stencilOpFrontFail != StencilOp.Keep
+                    || stencilOpFrontZfail != StencilOp.Keep
+                    || (stencilOpFrontComp != StencilComp.Always && stencilOpFrontComp != StencilComp.Disabled))
+				{
+                    _sb.AppendLine($"CompFront {stencilOpFrontComp}");
+                    _sb.AppendLine($"PassFront {stencilOpFrontPass}");
+                    _sb.AppendLine($"FailFront {stencilOpFrontFail}");
+                    _sb.AppendLine($"ZFailFront {stencilOpFrontZfail}");
+				}
+				if (stencilOpBackPass != StencilOp.Keep
+                    || stencilOpBackFail != StencilOp.Keep
+                    || stencilOpBackZfail != StencilOp.Keep
+                    || (stencilOpBackComp != StencilComp.Always && stencilOpBackComp != StencilComp.Disabled))
+				{
+                    _sb.AppendLine($"CompBack {stencilOpBackComp}");
+                    _sb.AppendLine($"PassBack {stencilOpBackPass}");
+                    _sb.AppendLine($"FailBack {stencilOpBackFail}");
+                    _sb.AppendLine($"ZFailBack {stencilOpBackZfail}");
+				}
+				_sb.Unindent();
+				_sb.AppendLine("}");
+			}
+
+			if (fogMode != FogMode.Unknown || fogDensity != 0.0 || fogStart != 0.0 || fogEnd != 0.0
+                || !(fogColorX == 0.0 && fogColorY == 0.0 && fogColorZ == 0.0 && fogColorW == 0.0))
+			{
+                _sb.AppendLine("Fog {");
+                _sb.Indent();
+				if (fogMode != FogMode.Unknown)
+				{
+                    _sb.AppendLine($"Mode {fogMode}");
+				}
+				if (fogColorX != 0.0 || fogColorY != 0.0 || fogColorZ != 0.0 || fogColorW != 0.0)
+				{
+                    _sb.AppendLine($"Color ({fogColorX.ToString(CultureInfo.InvariantCulture)}," +
+                                   $"{fogColorY.ToString(CultureInfo.InvariantCulture)}," +
+                                   $"{fogColorZ.ToString(CultureInfo.InvariantCulture)}," +
+                                   $"{fogColorW.ToString(CultureInfo.InvariantCulture)})");
+				}
+				if (fogDensity != 0.0)
+				{
+                    _sb.AppendLine($"Density {fogDensity.ToString(CultureInfo.InvariantCulture)}");
+				}
+				if (fogStart != 0.0 || fogEnd != 0.0)
+				{
+                    _sb.AppendLine($"Range {fogStart.ToString(CultureInfo.InvariantCulture)}, " +
+                                   $"{fogEnd.ToString(CultureInfo.InvariantCulture)}");
+				}
+                _sb.Unindent();
+                _sb.AppendLine("}");
+			}
 
             if (lighting)
             {
