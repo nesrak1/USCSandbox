@@ -32,8 +32,8 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Fixers
                         operand.immValueInt = new int[count];
                         for (int j = 0; j < count; j++)
                         {
-                            int intValue = BitConverter.SingleToInt32Bits(operand.immValueFloat[j]);
-                            operand.immValueInt[j] = intValue;
+                            //int intValue = BitConverter.SingleToInt32Bits(operand.immValueFloat[j]);
+                            operand.immValueInt[j] = (int)operand.immValueFloat[j];
                         }
                         operand.operandType = USILOperandType.ImmediateInt;
                     }

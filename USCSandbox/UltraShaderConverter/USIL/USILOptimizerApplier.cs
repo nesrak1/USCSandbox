@@ -32,7 +32,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL
 			// do simplification optimizers last when detection has been finished
 			new USILCompareOrderOptimizer(),
             new USILAddNegativeOptimizer(),
-            new USILAndOptimizer(),
+            // new USILAndOptimizer(),
             // needs to be after AndOptimizer
             new USILObviousUIntFixer(),
             // //////////////////////////////
