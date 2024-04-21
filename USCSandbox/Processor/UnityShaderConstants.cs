@@ -57,7 +57,8 @@
             "_WorldSpaceCameraPos",
             "_WorldSpaceLightPos0",
             "_ZBufferParams",
-            "_LightPositionRange"
+            "_LightPositionRange",
+            "_PPLAmbient"
         };
 
         // not in cgincludes but needed
