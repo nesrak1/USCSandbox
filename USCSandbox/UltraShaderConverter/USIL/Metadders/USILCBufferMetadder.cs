@@ -38,6 +38,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Metadders
 
                 HashSet<ConstantBufferParameter> cbParams = new HashSet<ConstantBufferParameter>();
                 List<int> cbMasks = new List<int>();
+                int cbParamIndex = 0;
 
                 ConstantBuffer constantBuffer;
                 BufferBinding? binding = shaderParams.ConstBindings.FirstOrDefault(b => b.Index == cbRegIdx);
@@ -63,8 +64,9 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Metadders
                 foreach (ConstantBufferParameter param in constantBuffer.CBParams)
                 {
                     int paramCbStart = param.Index;
-                    int paramCbSize = param.Rows * param.Columns * 4;
-                    int paramCbEnd = paramCbStart + paramCbSize;
+                    int paramCbElementSize = param.Rows * param.Columns * 4;
+                    int paramCbTotalSize = param.Rows * param.Columns * 4 * (param.ArraySize == 0 ? 1 : param.ArraySize);
+                    int paramCbEnd = paramCbStart + paramCbTotalSize;
 
                     foreach (int operandMaskAddress in operandMaskAddresses)
                     {
@@ -77,6 +79,13 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Metadders
                             {
                                 maskIndex %= 4;
                             }
+
+                            if (param.ArraySize > 1)
+                            {
+                                cbParamIndex = (operandMaskAddress - paramCbStart) / paramCbElementSize;
+                                maskIndex -= 4 * cbParamIndex;
+                            }
+                            
                             cbMasks.Add(maskIndex);
                         }
                     }
