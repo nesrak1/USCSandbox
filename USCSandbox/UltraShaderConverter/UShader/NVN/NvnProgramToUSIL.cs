@@ -39,84 +39,9 @@ namespace USCSandbox.UltraShaderConverter.UShader.NVN
                 { Instruction.Add, new InstHandler(HandleAdd) },
                 { Instruction.Multiply | Instruction.FP32, new InstHandler(HandleMul) },
                 { Instruction.Multiply | Instruction.FP64, new InstHandler(HandleMul) },
-                //{ Instruction.Divide, new InstHandler(HandleDiv) },
                 { Instruction.FusedMultiplyAdd | Instruction.FP32, new InstHandler(HandleMad) },
                 { Instruction.FusedMultiplyAdd | Instruction.FP64, new InstHandler(HandleMad) },
-                //{ Instruction.BitwiseAnd, new InstHandler(HandleAnd) },
-                //{ Instruction.BitwiseOr, new InstHandler(HandleOr) },
-                //{ Instruction.BitwiseExclusiveOr, new InstHandler(HandleXor) },
-                //{ Instruction.BitwiseNot, new InstHandler(HandleNot) },
-                //{ Instruction.ConvertFP32ToS32, new InstHandler(HandleFtoi) },
-                //{ Instruction.ConvertFP32ToU32, new InstHandler(HandleFtoi) },
-                //{ Instruction.ConvertS32ToFP32, new InstHandler(HandleItof) },
-                //{ Instruction.ConvertU32ToFP32, new InstHandler(HandleItof) },
-                //{ Instruction.Minimum, new InstHandler(HandleMin) },
-                //{ Instruction.MinimumU32, new InstHandler(HandleMin) },
-                //{ Instruction.Maximum, new InstHandler(HandleMax) },
-                //{ Instruction.MaximumU32, new InstHandler(HandleMax) },
-                //{ Instruction.SquareRoot, new InstHandler(HandleSqrt) },
-                //{ Instruction.ReciprocalSquareRoot, new InstHandler(HandleRsq) },
-                //{ Instruction.LogarithmB2, new InstHandler(HandleLog) },
-                //{ Instruction.ExponentB2, new InstHandler(HandleExp) },
-                //{ Instruction.Negate, new InstHandler(HandleNeg) },
-                //{ Instruction.Round, new InstHandler(HandleRound) },
-                //{ Instruction.Sine, new InstHandler(HandleSin) },
-                //{ Instruction.Cosine, new InstHandler(HandleCos) },
-                //{ Instruction.ShiftLeft, new InstHandler(HandleShl) },
-                //{ Instruction.ShiftRightS32, new InstHandler(HandleIShr) },
-                //{ Instruction.ShiftRightU32, new InstHandler(HandleIShr) },
                 { Instruction.Load, new InstHandler(HandleLoad) },
-                //{ Instruction.Store, new InstHandler(HandleStore) },
-
-                //{ Instruction.dp2, new InstHandler(HandleDp2) },
-                //{ Instruction.dp3, new InstHandler(HandleDp3) },
-                //{ Instruction.dp4, new InstHandler(HandleDp4) },
-                //{ Instruction.sample, new InstHandler(HandleSample) },
-                //{ Instruction.sample_c, new InstHandler(HandleSampleC) },
-                //{ Instruction.sample_c_lz, new InstHandler(HandleSampleC) },
-                //{ Instruction.sample_l, new InstHandler(HandleSampleL) },
-                //{ Instruction.sample_b, new InstHandler(HandleSampleL) },
-                //{ Instruction.sample_d, new InstHandler(HandleSampleD) },
-                //{ Instruction.ld, new InstHandler(HandleLd) },
-                //{ Instruction.ldms, new InstHandler(HandleLd) },
-                //{ Instruction.ld_structured, new InstHandler(HandleLdStructured) },
-                //{ Instruction.discard, new InstHandler(HandleDiscard) },
-                //{ Instruction.resinfo, new InstHandler(HandleResInfo) },
-                //{ Instruction.sampleinfo, new InstHandler(HandleSampleInfo) },
-                //{ Instruction.deriv_rtx, new InstHandler(HandleDerivRt) },
-                //{ Instruction.deriv_rty, new InstHandler(HandleDerivRt) },
-                //{ Instruction.deriv_rtx_coarse, new InstHandler(HandleDerivRt) },
-                //{ Instruction.deriv_rty_coarse, new InstHandler(HandleDerivRt) },
-                //{ Instruction.deriv_rtx_fine, new InstHandler(HandleDerivRt) },
-                //{ Instruction.deriv_rty_fine, new InstHandler(HandleDerivRt) },
-                //{ Instruction.@if, new InstHandler(HandleIf) },
-                //{ Instruction.@else, new InstHandler(HandleElse) },
-                //{ Instruction.endif, new InstHandler(HandleEndIf) },
-                //{ Instruction.loop, new InstHandler(HandleLoop) },
-                //{ Instruction.endloop, new InstHandler(HandleEndLoop) },
-                //{ Instruction.@break, new InstHandler(HandleBreak) },
-                //{ Instruction.breakc, new InstHandler(HandleBreakc) },
-                //{ Instruction.@continue, new InstHandler(HandleContinue) },
-                //{ Instruction.continuec, new InstHandler(HandleContinuec) },
-                //{ Instruction.@switch, new InstHandler(HandleSwitch) },
-                //{ Instruction.@case, new InstHandler(HandleCase) },
-                //{ Instruction.@default, new InstHandler(HandleDefault) },
-                //{ Instruction.endswitch, new InstHandler(HandleEndSwitch) },
-                //{ Instruction.eq, new InstHandler(HandleEq) },
-                //{ Instruction.ieq, new InstHandler(HandleEq) },
-                //{ Instruction.ne, new InstHandler(HandleNeq) },
-                //{ Instruction.ine, new InstHandler(HandleNeq) },
-                //{ Instruction.lt, new InstHandler(HandleLt) },
-                //{ Instruction.ilt, new InstHandler(HandleLt) },
-                //{ Instruction.ult, new InstHandler(HandleLt) },
-                //{ Instruction.ge, new InstHandler(HandleGe) },
-                //{ Instruction.ige, new InstHandler(HandleGe) },
-                //{ Instruction.uge, new InstHandler(HandleGe) },
-                //{ Instruction.ret, new InstHandler(HandleRet) },
-                //////dec
-                //{ Opcode.dcl_temps, new InstHandler(HandleTemps) },
-                //{ Opcode.dcl_resource, new InstHandler(HandleResource) },
-                //{ Opcode.customdata, new InstHandler(HandleCustomData) }
             };
 
             // locals are not ID'd but pointers to specific operands
@@ -130,8 +55,6 @@ namespace USCSandbox.UltraShaderConverter.UShader.NVN
             GenerateRyujinxIl();
             ConvertInstructions();
             var a = 2;
-            //ConvertInputs();
-            //ConvertOutputs();
         }
 
         private void GenerateRyujinxIl()
@@ -216,7 +139,6 @@ namespace USCSandbox.UltraShaderConverter.UShader.NVN
                     else
                     {
                         // unsupported
-                        //SetUsilOperandImmediate(usilOperand, 12345, 12345f, immIsInt);
                         usilOperand.operandType = USILOperandType.Comment;
                         usilOperand.comment = $"/*{mxOperand.Type}/{mxOperand.Value}/{reg.Type}/1*/";
                     }
@@ -226,7 +148,6 @@ namespace USCSandbox.UltraShaderConverter.UShader.NVN
                 {
                     usilOperand.operandType = USILOperandType.Comment;
                     usilOperand.comment = $"/*{mxOperand.Type}/{mxOperand.Value}/2*/";
-                    //SetUsilOperandImmediate(usilOperand, 23456, 23456f, immIsInt);
                     break;
                 }
             }
@@ -357,8 +278,6 @@ namespace USCSandbox.UltraShaderConverter.UShader.NVN
                 USILOperand usilSrc0 = new USILOperand();
 
                 FillUSILOperand(dest, usilDest, false);
-                //FillUSILOperand(src0, usilSrc0, false);
-                //FillUSILOperand(src1, usilSrc1, false);
                 usilSrc0.operandType = USILOperandType.Comment;
                 usilSrc0.comment = $"/*{io}, {src1.Value}*/";
 

@@ -852,7 +852,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
             {
                 usilInst.instructionType = USILInstructionType.FloatToInt;
             }
-            else // if (inst.opcode == Opcode.ftoi)
+            else
             {
                 usilInst.instructionType = USILInstructionType.FloatToUInt;
             }
@@ -882,7 +882,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
             {
                 usilInst.instructionType = USILInstructionType.IntToFloat;
             }
-            else // if (inst.opcode == Opcode.utof)
+            else
             {
                 usilInst.instructionType = USILInstructionType.UIntToFloat;
             }
@@ -1455,7 +1455,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
             {
                 usilInst.instructionType = USILInstructionType.SampleComparison;
             }
-            else //if (inst.opcode == Opcode.sample_c_lz)
+            else
             {
                 usilInst.instructionType = USILInstructionType.SampleComparisonLODZero;
             }
@@ -1504,7 +1504,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
             {
                 usilInst.instructionType = USILInstructionType.SampleLODBias;
             }
-            else //if (inst.opcode == Opcode.sample_l)
+            else
             {
                 usilInst.instructionType = USILInstructionType.SampleLOD;
             }
@@ -1588,7 +1588,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
             {
                 usilInst.instructionType = USILInstructionType.LoadResource;
             }
-            else //(inst.opcode == Opcode.ldms)
+            else
             {
                 usilInst.instructionType = USILInstructionType.LoadResourceMultisampled;
             }

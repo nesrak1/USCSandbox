@@ -211,7 +211,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL
                         {
                             body = $"{immValueInt[0]}";
                         }
-                        else //if (immValueInt.Length > 1)
+                        else
                         {
                             body += $"int{immValueInt.Length}(";
                             for (int i = 0; i < immValueInt.Length; i++)
@@ -237,7 +237,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL
                             // todo: float precision isn't correct atm. add precision check somewhere.
                             body = $"{immValueFloat[0].ToString("0.0#######", CultureInfo.InvariantCulture)}";
                         }
-                        else //if (immValueFloat.Length > 1)
+                        else
                         {
                             // todo: if all numbers are the same and it matches the mask, use it only once
                             body += $"float{immValueFloat.Length}(";

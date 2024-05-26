@@ -15,9 +15,6 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Metadders
                 {
                     if (operand.operandType == USILOperandType.SamplerRegister)
                     {
-                        //TextureParameter? texParam = shaderParams.TextureParameters.FirstOrDefault(
-                        //    p => p.SamplerIndex == operand.registerIndex
-                        //);
                         TextureParameter? texParam = shaderParams.TextureParameters.FirstOrDefault(
                             p => p.SamplerIndex == operand.registerIndex
                         );

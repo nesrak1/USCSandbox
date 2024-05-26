@@ -192,8 +192,6 @@ namespace USCSandbox.Processor
             
             foreach (var basket in basketsInfo)
             {
-                // if (basket != basketsInfo.Last())
-                //     continue;
                 var structSb = new StringBuilder();
                 var cbufferSb = new StringBuilder();
                 var texSb = new StringBuilder();
@@ -216,23 +214,11 @@ namespace USCSandbox.Processor
                 {
                     param = subProg.ShaderParams;
                 }
-
-                //Console.WriteLine($"working on {basket.SubProgramInfo.BlobIndex}");
-
+                
                 param.CombineCommon(progInfo);
 
                 var programType = subProg.GetProgramType(_engVer);
                 var graphicApi = _platformId;
-
-                // defineSb.Append(new string(' ', depth * 4));
-                // defineSb.AppendLine(programType switch
-                // {
-                //     ShaderGpuProgramType.DX11VertexSM40 => "#pragma vertex vert",
-                //     ShaderGpuProgramType.DX11PixelSM40 => "#pragma fragment frag",
-                //     ShaderGpuProgramType.ConsoleVS => "#pragma vertex vert",
-                //     ShaderGpuProgramType.ConsoleFS => "#pragma fragment frag",
-                //     _ => $"// unknown shader type {programType}"
-                // });
 
                 var keywords = subProg.GlobalKeywords.Concat(subProg.LocalKeywords).Order().ToArray();
 
@@ -271,48 +257,25 @@ namespace USCSandbox.Processor
                     structSb.Append(new string(' ', depth * 4));
                     structSb.Append($"#{preprocessorDirective} {string.Join(" && ", keywords)}");
                 }
-                // if (!keywords.SequenceEqual(["FOG_LINEAR", "POINT", "SHADOWS_CUBE", "SHADOWS_SOFT"]))
-                //     continue;
                 
-                // if ((!encounterdVert && programType == ShaderGpuProgramType.DX11VertexSM40)
-                //     || (!encounterdFrag && programType == ShaderGpuProgramType.DX11PixelSM40))
-                // {
-                    cbufferSb.Append(new string(' ', depth * 4));
-                    cbufferSb.AppendLine($"// CBs for {programType}");
-                //}
+                cbufferSb.Append(new string(' ', depth * 4));
+                cbufferSb.AppendLine($"// CBs for {programType}");
+                
                 foreach (ConstantBuffer cbuffer in param.ConstantBuffers)
                 {
-                    //if (!UnityShaderConstants.BUILTIN_CBUFFER_NAMES.Contains(cbuffer.Name))
-                    {
-                        cbufferSb.Append(WritePassCBuffer(param, declaredCBufs[string.Join("-", keywords)], cbuffer, depth));
-                    }
+                    cbufferSb.Append(WritePassCBuffer(param, declaredCBufs[string.Join("-", keywords)], cbuffer, depth));
                 }
 
-                //cbufferSb.AppendLine();
-                // if ((!encounterdVert && programType == ShaderGpuProgramType.DX11VertexSM40)
-                //     || (!encounterdFrag && programType == ShaderGpuProgramType.DX11PixelSM40))
-                // {
-                    texSb.Append(new string(' ', depth * 4));
-                    texSb.AppendLine($"// Textures for {programType}");
-                //}
+                texSb.Append(new string(' ', depth * 4));
+                texSb.AppendLine($"// Textures for {programType}");
 
                 texSb.Append(WritePassTextures(param, declaredCBufs[string.Join("-", keywords)], depth));
-                //texSb.AppendLine();
                 
                 switch (programType)
                 {
                     case ShaderGpuProgramType.DX11VertexSM40:
                     case ShaderGpuProgramType.DX11PixelSM40:
                     {
-                        // DBG
-                        // int ifDepth = 0;
-                        // foreach (var inst in conv.DxShader!.Shdr.shaderInstructions)
-                        // {
-                        //     memeSb.Append(new string(' ', depth * 4));
-                        //     memeSb.AppendLine("// " + DirectXDisassemblyHelper.DisassembleInstruction(inst, ref ifDepth));
-                        // }
-                        // ///
-
                         var conv = new USCShaderConverter();
                         conv.LoadDirectXCompiledShader(new MemoryStream(subProg.ProgramData), graphicApi, _engVer);
                         conv.ConvertDxShaderToUShaderProgram();
@@ -320,40 +283,6 @@ namespace USCSandbox.Processor
 
                         UShaderFunctionToHLSL hlslConverter = new UShaderFunctionToHLSL(conv.ShaderProgram!, depth);
                         
-
-                        //string preprocessorDirective;
-                        if ((!encounterdVert && programType == ShaderGpuProgramType.DX11VertexSM40)
-                            || (!encounterdFrag && programType == ShaderGpuProgramType.DX11PixelSM40))
-                        {
-                            
-
-                            //preprocessorDirective = "if";
-
-                            // codeSb.AppendLine();
-                            // codeSb.Append(new string(' ', depth * 4));
-                            // codeSb.Append("#if " + string.Join(" && ", keywords));
-                            // var keywordsSet = programType == ShaderGpuProgramType.DX11VertexSM40
-                            //     ? vertextUniqueKeywords
-                            //     : fragmentUniqueKeywords;
-                            // foreach (string excludedKeyword in keywordsSet.Except(keywords))
-                            // {
-                            //     codeSb.Append(" && ");
-                            //     codeSb.Append("!" + excludedKeyword);
-                            // }
-                            // codeSb.AppendLine();
-                        }
-                        else
-                        {
-                            //preprocessorDirective = "elif";
-                        }
-                        
-                        // structSb.AppendLine();
-                        // structSb.Append(new string(' ', depth * 4));
-                        // structSb.Append($"#{preprocessorDirective} {string.Join(" && ", keywords)}");
-                        // codeSb.AppendLine();
-                        // codeSb.Append(new string(' ', depth * 4));
-                        // codeSb.Append($"#{preprocessorDirective} {string.Join(" && ", keywords)}");
-
                         structSb.AppendLine();
                         codeSb.AppendLine();
                         
@@ -637,8 +566,7 @@ namespace USCSandbox.Processor
                     _sb.AppendLine($"UsePass \"{usePassName}\"");
                     continue;
                 }
-                // if (pass != passes.Last())
-                //     continue;
+                
                 _sb.AppendLine("Pass {");
                 _sb.Indent();
                 {
@@ -652,12 +580,7 @@ namespace USCSandbox.Processor
 
                     var vertProgInfos = vertInfo.GetForPlatform((int)GetVertexProgramForPlatform(_platformId));
                     var fragProgInfos = fragInfo.GetForPlatform((int)GetFragmentProgramForPlatform(_platformId));
-
-                    // if (vertProgInfos.Count != fragProgInfos.Count && fragProgInfos.Count > 0)
-                    // {
-                    //     throw new Exception("Vert and frag program count should be the same");
-                    // }
-
+                    
                     // we should hopefully only have one of each type, but just in case...
                     // todo: cleanup
                     List<ShaderProgramBasket> baskets = [];
@@ -673,116 +596,6 @@ namespace USCSandbox.Processor
                     }
                     if (baskets.Count > 0)
                         WritePassBody(blobManager, baskets, _sb.GetIndent());
-
-                    /*for (var i = 0; i < vertProgInfos.Count; i++)
-                    {
-                        var test = blobManager.GetShaderSubProgram((int)vertProgInfos[i].BlobIndex);
-                        var keys = test.GlobalKeywords.Concat(test.LocalKeywords).ToArray();
-                        if (!(keys.SequenceEqual(["DUMMY"]) || keys.SequenceEqual(["DIRECTIONAL", "DUMMY"])))
-                        {
-                            continue;
-                        }
-
-                        int fragId = -1;
-                        for (var j = 0; j < fragProgInfos.Count; j++)
-                        {
-                            test = blobManager.GetShaderSubProgram((int)fragProgInfos[j].BlobIndex);
-                            keys = test.GlobalKeywords.Concat(test.LocalKeywords).ToArray();
-                            if (!(keys.SequenceEqual(["DUMMY"]) || keys.SequenceEqual(["DIRECTIONAL", "DUMMY"])))
-                            {
-                                continue;
-                            }
-
-                            fragId = j;
-                            break;
-                        }
-
-                        List<ShaderProgramBasket> baskets;
-                        if (vertInfo.ParameterBlobIndices.Count > 0) //&& fragInfo.ParameterBlobIndices.Count > 0)
-                        {
-                            baskets = new List<ShaderProgramBasket>
-                            {
-                                new ShaderProgramBasket(vertInfo, vertProgInfos[i], (int)vertInfo.ParameterBlobIndices[i]),
-                                new ShaderProgramBasket(fragInfo, fragProgInfos[fragId], (int)fragInfo.ParameterBlobIndices[fragId])
-                            };
-                        }
-                        else
-                        {
-                            baskets = new List<ShaderProgramBasket>
-                            {
-                                new ShaderProgramBasket(vertInfo, vertProgInfos[i], -1),
-                                new ShaderProgramBasket(fragInfo, fragProgInfos[fragId], -1)
-                            };
-                        }
-                        WritePassBody(blobManager, baskets, _sb.GetIndent());
-                    }*/
-                    /*if (vertProgInfos.Count > 0 && fragProgInfos.Count > 0)
-                    {
-                        for (var i = 0; i < vertProgInfos.Count; i++)
-                        {
-                            List<ShaderProgramBasket> baskets;
-                            if (vertInfo.ParameterBlobIndices.Count > 0 && vertInfo.ParameterBlobIndices.Count > 0)
-                            {
-                                baskets = new List<ShaderProgramBasket>
-                                {
-                                    new ShaderProgramBasket(vertInfo, vertProgInfos[i], (int)vertInfo.ParameterBlobIndices[i]),
-                                    //new ShaderProgramBasket(fragInfo, fragProgInfos[i], (int)fragInfo.ParameterBlobIndices[i])
-                                };
-                            }
-                            else
-                            {
-                                baskets = new List<ShaderProgramBasket>
-                                {
-                                    new ShaderProgramBasket(vertInfo, vertProgInfos[i], -1),
-                                    //new ShaderProgramBasket(fragInfo, fragProgInfos[i], -1)
-                                };
-                            }
-                            WritePassBody(blobManager, baskets, _sb.GetIndent());
-                        }
-                        for (var i = 0; i < fragProgInfos.Count; i++)
-                        {
-                            List<ShaderProgramBasket> baskets;
-                            if (vertInfo.ParameterBlobIndices.Count > 0 && fragInfo.ParameterBlobIndices.Count > 0)
-                            {
-                                baskets = new List<ShaderProgramBasket>
-                                {
-                                    new ShaderProgramBasket(fragInfo, fragProgInfos[i], (int)fragInfo.ParameterBlobIndices[i]),
-                                    //new ShaderProgramBasket(fragInfo, fragProgInfos[i], (int)fragInfo.ParameterBlobIndices[i])
-                                };
-                            }
-                            else
-                            {
-                                baskets = new List<ShaderProgramBasket>
-                                {
-                                    new ShaderProgramBasket(fragInfo, fragProgInfos[i], -1),
-                                    //new ShaderProgramBasket(fragInfo, fragProgInfos[i], -1)
-                                };
-                            }
-                            WritePassBody(blobManager, baskets, _sb.GetIndent());
-                        }
-                    }
-                    else if (vertProgInfos.Count > 0 && fragProgInfos.Count == 0)
-                    {
-                        for (var i = 0; i < vertProgInfos.Count; i++)
-                        {
-                            List<ShaderProgramBasket> baskets;
-                            if (vertInfo.ParameterBlobIndices.Count > 0)
-                            {
-                                baskets = new List<ShaderProgramBasket>
-                                {
-                                    new ShaderProgramBasket(vertInfo, vertProgInfos[i], (int)vertInfo.ParameterBlobIndices[i]),
-                                };
-                            }
-                            else
-                            {
-                                baskets = new List<ShaderProgramBasket>
-                                {
-                                    new ShaderProgramBasket(vertInfo, vertProgInfos[i], -1),
-                                };
-                            }
-                            WritePassBody(blobManager, baskets, _sb.GetIndent());
-                        }
-                    }*/
                 }
                 _sb.Unindent();
                 _sb.AppendLine("}");

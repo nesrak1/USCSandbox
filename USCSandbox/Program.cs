@@ -9,8 +9,6 @@ namespace USCSandbox
     {
         static void Main(string[] args)
         {
-            // null "C:\Users\nesquack\Documents\GitIssueWs\Data2g\Data2\Resources\unity_builtin_extra" 7 Switch
-
             var bundlePath = args[0];
             var assetsFileName = args[1];
             var shaderPathId = -1L; 
@@ -35,7 +33,6 @@ namespace USCSandbox
                 shaderTypeId = manager.ClassPackage.GetClassDatabase(ver.ToString()).FindAssetClassByName("Shader").ClassId;
                 
                 var ggm = manager.LoadAssetsFileFromBundle(bundleFile, "globalgamemanagers");
-                //manager.LoadClassDatabaseFromPackage(ggm.file.Metadata.UnityVersion);
                 var rsrcInfo = ggm.file.GetAssetsOfType(AssetClassID.ResourceManager)[0];
                 var rsrcBf = manager.GetBaseField(ggm, rsrcInfo);
                 var m_Container = rsrcBf["m_Container.Array"];
@@ -44,7 +41,6 @@ namespace USCSandbox
                     var name = data[0].AsString;
                     var pathId = data[1]["m_PathID"].AsLong;
                     files[pathId] = name;
-                    //Console.WriteLine($"in resources.assets, pathid {pathId} = {name}");
                 }
             }
             else
