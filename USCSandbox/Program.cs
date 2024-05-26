@@ -58,7 +58,6 @@ namespace USCSandbox
             }
 
             var shaders = afileInst.file.GetAssetsOfType(shaderTypeId);
-            int unnamedCount = 0;
             foreach (var shader in shaders)
             {
                 if (shaderPathId != -1 && shader.PathId != shaderPathId)
@@ -81,10 +80,10 @@ namespace USCSandbox
                 }
                 else
                 {
-                    Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "out", "unnamed"));
-                    File.WriteAllText($"{Path.Combine(Environment.CurrentDirectory, "out", "unnamed", $"unnamed {unnamedCount}")}.shader", shaderText);
-                    Console.WriteLine($"Unnamed {unnamedCount} decompiled");
-                    unnamedCount++;
+                    Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "out", "builtin"));
+                    var shaderName = shaderBf["m_ParsedForm"]["m_Name"].AsString;
+                    File.WriteAllText($"{Path.Combine(Environment.CurrentDirectory, "out", "builtin", $"{shaderName.Replace('/', '_')}")}.shader", shaderText);
+                    Console.WriteLine($"builtin {shaderName} decompiled");
                 }
             }
         }
