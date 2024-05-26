@@ -67,7 +67,6 @@
         MetalFS = 24,
         SPIRV = 25,
         Console = 26,
-        //ConsoleVS = 26,
         ConsoleFS = 27,
         ConsoleHS = 28,
         ConsoleDS = 29,

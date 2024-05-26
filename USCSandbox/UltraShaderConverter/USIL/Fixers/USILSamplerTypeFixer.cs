@@ -15,8 +15,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Fixers
             "unity_ShadowMask",
             "unity_DynamicLightmap",
             "unity_SpecCube0",
-            "unity_ProbeVolumeSH",
-            "_ShadowMapTexture"
+            "unity_ProbeVolumeSH"
         };
 
         public bool Run(UShaderProgram shader, ShaderParams shaderParams)

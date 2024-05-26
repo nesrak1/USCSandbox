@@ -13,8 +13,7 @@
             "unity_DynamicNormal",
             "unity_SpecCube0",
             "unity_SpecCube1",
-            "unity_ProbeVolumeSH",
-            "_ShadowMapTexture"
+            "unity_ProbeVolumeSH"
         };
 
         // TODO: same here
@@ -58,7 +57,8 @@
             "_WorldSpaceCameraPos",
             "_WorldSpaceLightPos0",
             "_ZBufferParams",
-            "_LightPositionRange"
+            "_LightPositionRange",
+            "_PPLAmbient"
         };
 
         // not in cgincludes but needed

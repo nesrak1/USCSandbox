@@ -111,11 +111,6 @@
                 }
             }
 
-            //for (int i = 0; i < GetOperandCount(opcode); i++)
-            //{
-            //    operands.Add(new SHDRInstructionOperand(reader));
-            //}
-
             if (reader.BaseStream.Position > endPos && opcode != Opcode.customdata)
             {
                 throw new Exception($"went over end pos ({opcode})");
@@ -596,17 +591,6 @@
                 }
                 case Opcode.dcl_indexrange:
                 {
-                    //reader.BaseStream.Position += extraDataStart;
-                    //indexRange = reader.ReadInt32();
-                    //if (inst.operands[0].operand == Operand.Input)
-                    //{
-                    //    int reg = inst.operands[0].arraySizes.Length;
-                    //    
-                    //}
-                    //else if (inst.operands[0].operand == Operand.Output)
-                    //{
-                    //
-                    //}
                     break;
                 }
                 case Opcode.dcl_constantbuffer:

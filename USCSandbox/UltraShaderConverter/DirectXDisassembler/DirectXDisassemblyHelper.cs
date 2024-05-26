@@ -6,7 +6,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.DirectXDisasse
     {
         public static string DisassembleInstruction(SHDRInstruction inst, ref int ifDepth)
         {
-            if (inst.opcode == Opcode.endif || inst.opcode == Opcode.@else)
+            if (ifDepth > 0 && (inst.opcode == Opcode.endif || inst.opcode == Opcode.@else))
             {
                 ifDepth -= 2;
             }

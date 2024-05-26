@@ -46,30 +46,6 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Fixers
 
                 resinfoInst.srcOperands[5] = sampleinfoInst.destOperand;
 
-                //USILInstruction usilInst = new USILInstruction();
-                //USILOperand usilResource = new USILOperand(resinfoInst.srcOperands[0]);
-                //USILOperand usilMipLevel = new USILOperand(resinfoInst.srcOperands[1]);
-                //USILOperand usilWidth = new USILOperand(resinfoInst.srcOperands[2]);
-                //USILOperand usilHeight = new USILOperand(resinfoInst.srcOperands[3]);
-                //USILOperand usilDepthOrArraySize = new USILOperand(resinfoInst.srcOperands[4]);
-                //USILOperand usilMipCount  = new USILOperand(resinfoInst.srcOperands[5]);
-                //USILOperand usilSampleCount = new USILOperand(sampleinfoInst.destOperand);
-
-                //usilInst.instructionType = USILInstructionType.GetDimensions;
-                //usilInst.destOperand = null;
-                //usilInst.srcOperands = new List<USILOperand>
-                //{
-                //	usilResource,
-                //	usilMipLevel,
-                //	usilWidth,
-                //	usilHeight,
-                //	usilDepthOrArraySize,
-                //	usilMipCount,
-                //	usilSampleCount
-                //};
-
-                //instructions[i] = usilInst;
-
                 instructions.RemoveAt(i + 1); // remove SampleCountInfo
                 changes = true;
             }

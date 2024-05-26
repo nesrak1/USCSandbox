@@ -7,8 +7,6 @@ namespace USCSandbox.Processor
         public string ParamName;
         public ShaderParamType ParamType;
         public int Rows;
-        //public int MatrixColumns;
-        //public int Columns => IsMatrix ? MatrixColumns : 1;
         public int Columns;
         public bool IsMatrix;
         public int ArraySize;
@@ -26,7 +24,6 @@ namespace USCSandbox.Processor
             ParamType = (ShaderParamType)r.ReadInt32();
             Rows = r.ReadInt32();
             Columns = r.ReadInt32();
-            //MatrixColumns = r.ReadInt32();
             IsMatrix = r.ReadInt32() > 0;
             ArraySize = r.ReadInt32();
             Index = r.ReadInt32();
@@ -41,14 +38,12 @@ namespace USCSandbox.Processor
             {
                 Rows = field["m_RowCount"].AsInt;
                 Columns = Rows;
-                //MatrixColumns = Rows; // is this right?
                 IsMatrix = true;
             }
             else
             {
                 Rows = field["m_Dim"].AsInt;
                 Columns = 1;
-                //MatrixColumns = Rows;
                 IsMatrix = false;
             }
         }

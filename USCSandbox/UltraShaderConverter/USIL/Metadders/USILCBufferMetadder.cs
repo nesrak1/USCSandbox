@@ -38,6 +38,7 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Metadders
 
                 HashSet<ConstantBufferParameter> cbParams = new HashSet<ConstantBufferParameter>();
                 List<int> cbMasks = new List<int>();
+                int cbParamIndex = 0;
 
                 ConstantBuffer constantBuffer;
                 BufferBinding? binding = shaderParams.ConstBindings.FirstOrDefault(b => b.Index == cbRegIdx);
@@ -63,8 +64,9 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Metadders
                 foreach (ConstantBufferParameter param in constantBuffer.CBParams)
                 {
                     int paramCbStart = param.Index;
-                    int paramCbSize = param.Rows * param.Columns * 4;
-                    int paramCbEnd = paramCbStart + paramCbSize;
+                    int paramCbElementSize = param.Rows * param.Columns * 4;
+                    int paramCbTotalSize = param.Rows * param.Columns * 4 * (param.ArraySize == 0 ? 1 : param.ArraySize);
+                    int paramCbEnd = paramCbStart + paramCbTotalSize;
 
                     foreach (int operandMaskAddress in operandMaskAddresses)
                     {
@@ -77,6 +79,13 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Metadders
                             {
                                 maskIndex %= 4;
                             }
+
+                            else if (param.ArraySize > 1)
+                            {
+                                cbParamIndex = (operandMaskAddress - paramCbStart) / paramCbElementSize;
+                                maskIndex -= 4 * cbParamIndex;
+                            }
+                            
                             cbMasks.Add(maskIndex);
                         }
                     }
@@ -138,27 +147,29 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Metadders
                 {
                     ConstantBufferParameter param = cbParams.First();
 
-                    // Matrix
+                    operand.arrayIndex -= param.Index / 16;
+
+                    // apparently switch has column long, whereas directx has row long
+                    int maxRowOrColumnLength = Math.Max(param.Rows, param.Columns);
+
                     if (param.IsMatrix)
                     {
-                        //int matrixIdx = cbArrIdx - param.Index / 16;
+                        if (param.ArraySize > 0)
+                        {
+                            // example of 4x4 matrix: matrix[5] -> matrix[1][1] (matrix[1]._m01._m11._m21._m31)
+                            operand.arrayRelative = new USILOperand(operand.arrayIndex / maxRowOrColumnLength);
+                            operand.arrayIndex %= maxRowOrColumnLength;
+                        }
 
                         operand.operandType = USILOperandType.Matrix;
-                        //operand.arrayIndex = matrixIdx;
                         operand.transposeMatrix = true;
                     }
-                    //else
-                    //{
-                    operand.arrayIndex -= param.Index / 16;
-                    //}
 
                     operand.mask = cbMasks.ToArray();
                     operand.metadataName = param.ParamName;
                     operand.metadataNameAssigned = true;
                     operand.metadataNameWithArray = param.ArraySize > 1;
 
-                    // apparently switch has column long, whereas directx has row long
-                    int maxRowOrColumnLength = Math.Max(param.Rows, param.Columns);
                     if (cbMasks.Count == maxRowOrColumnLength && !param.IsMatrix)
                     {
                         operand.displayMask = false;
