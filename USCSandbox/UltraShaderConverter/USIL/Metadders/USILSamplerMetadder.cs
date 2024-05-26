@@ -24,9 +24,17 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.USIL.Metadders
 
                         if (texParam == null)
                         {
-                            operand.operandType = USILOperandType.Sampler2D;
-                            Logger.Warning($"Could not find texture parameter for sampler {operand}");
-                            continue;
+                            // fallback to -1 if it exists
+                            texParam = shaderParams.TextureParameters.FirstOrDefault(
+                                p => p.SamplerIndex == -1
+                            );
+                            
+                            if (texParam == null)
+                            {
+                                operand.operandType = USILOperandType.Sampler2D;
+                                Logger.Warning($"Could not find texture parameter for sampler {operand}");
+                                continue;
+                            }
                         }
 
                         int dimension = texParam.Dim;
