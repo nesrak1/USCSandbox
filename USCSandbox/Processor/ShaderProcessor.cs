@@ -420,13 +420,8 @@ namespace USCSandbox.Processor
                 bool nonGlobalCbuffer = cbuffer.Name != "$Globals";
                 int cbufferIndex = shaderParams.ConstantBuffers.IndexOf(cbuffer);
 
-                // if (nonGlobalCbuffer)
-                // {
-                //     sb.Append(new string(' ', depth * 4)); // todo: new stringbuilder
-                //     sb.AppendLine($"// CBUFFER_START({cbuffer.Name}) // {cbufferIndex}");
-                //     depth++;
-                // }
-
+                bool wroteCbufferHeaderYet = false;
+                
                 char[] chars = new char[] { 'x', 'y', 'z', 'w' };
                 List<ConstantBufferParameter> allParams = cbuffer.CBParams;
                 foreach (ConstantBufferParameter param in allParams)
@@ -438,6 +433,13 @@ namespace USCSandbox.Processor
                     if (UnityShaderConstants.INCLUDED_UNITY_PROP_NAMES.Contains(name))
                     {
                         continue;
+                    }
+                    
+                    if (!wroteCbufferHeaderYet && nonGlobalCbuffer)
+                    {
+                        sb.Append(new string(' ', depth * 4)); // todo: new stringbuilder
+                        sb.AppendLine($"// CBUFFER_START({cbuffer.Name}) // {cbufferIndex}");
+                        depth++;
                     }
 
                     if (!declaredCBufs.Contains(name))
@@ -458,14 +460,15 @@ namespace USCSandbox.Processor
                         }
                         declaredCBufs.Add(name);
                     }
-                }
 
-                // if (nonGlobalCbuffer)
-                // {
-                //     depth--;
-                //     sb.Append(new string(' ', depth * 4));
-                //     sb.AppendLine("// CBUFFER_END");
-                // }
+                    if (!wroteCbufferHeaderYet && nonGlobalCbuffer)
+                    {
+                        depth--;
+                        sb.Append(new string(' ', depth * 4));
+                        sb.AppendLine("// CBUFFER_END");
+                        wroteCbufferHeaderYet = true;
+                    }
+                }
             }
             return sb.ToString();
         }
