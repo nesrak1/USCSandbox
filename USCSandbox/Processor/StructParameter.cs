@@ -13,6 +13,8 @@ namespace USCSandbox.Processor
         public StructParameter(AssetsFileReader r)
         {
             Name = r.ReadCountStringInt32();
+            r.Align();
+
             Index = r.ReadInt32();
             ArraySize = r.ReadInt32();
             Size = r.ReadInt32();
