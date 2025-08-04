@@ -13,7 +13,7 @@ namespace USCSandbox
                 Console.WriteLine("USCS");
                 Console.WriteLine("  [bundle path (or \"null\" for no bundle)]");
                 Console.WriteLine("  [assets path (or file name in bundle)]");
-                Console.WriteLine("  <shader path id (or \"all\" for all shaders)>");
+                Console.WriteLine("  <shader path id (or don't include for all shaders)>");
                 Console.WriteLine("  <shader platform: [d3d11, Switch] (or skip this arg for d3d11)>");
                 return;
             }
