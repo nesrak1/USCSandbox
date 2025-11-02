@@ -1,4 +1,5 @@
-﻿using AssetsTools.NET.Extra;
+﻿using AssetsTools.NET;
+using AssetsTools.NET.Extra;
 using USCSandbox.Processor;
 using UnityVersion = AssetRipper.Primitives.UnityVersion;
 
@@ -10,10 +11,10 @@ namespace USCSandbox
         {
             if (args.Length < 1)
             {
-                Console.WriteLine("USCS [bundle path] [assets path] [shader path id] <--platform> <--version>");
+                Console.WriteLine("USCS [bundle path] [assets path] [shader path id] <--platform> <--version> <--all>");
                 Console.WriteLine("  [bundle path (or \"null\" for no bundle)]");
                 Console.WriteLine("  [assets path (or file name in bundle)]");
-                Console.WriteLine("  <shader path id (or skip this arg for all shaders)>");
+                Console.WriteLine("  [shader path id (or --all to load all shaders)]");
                 Console.WriteLine("  --platform <[d3d11, Switch] (or skip this arg for d3d11)>");
                 Console.WriteLine("  --version <unity version override>");
                 return;
@@ -24,6 +25,7 @@ namespace USCSandbox
 
             GPUPlatform platform = GPUPlatform.d3d11;
             UnityVersion? ver = null;
+            bool allSet = false;
 
             List<string> argList = [];
             for (var i = 0; i < args.Length; i++)
@@ -38,6 +40,9 @@ namespace USCSandbox
                             break;
                         case "--version":
                             ver = UnityVersion.Parse(args[++i]);
+                            break;
+                        case "--all":
+                            allSet = true;
                             break;
                         default:
                             Console.WriteLine($"Optional argmuent {arg} is invalid.");
@@ -67,7 +72,7 @@ namespace USCSandbox
             }
 
             var assetsFileName = argList[1];
-            if (argList.Count == 2)
+            if (argList.Count == 2 && !allSet)
             {
                 if (bundlePath != "null")
                 {
@@ -98,7 +103,7 @@ namespace USCSandbox
                 return;
             }
 
-            var shaderPathId = -1L;
+            long shaderPathId = 0;
             if (argList.Count > 2)
                 shaderPathId = long.Parse(argList[2]);
 
@@ -141,20 +146,29 @@ namespace USCSandbox
                 return;
             }
 
-            var shaderBf = manager.GetBaseField(afileInst, shaderPathId);
-            if (shaderBf == null)
+            var shadersToLoad = new List<AssetFileInfo>();
+            if (shaderPathId != 0)
+                shadersToLoad.Add(afileInst.file.GetAssetInfo(shaderPathId));
+            else
+                shadersToLoad.AddRange(afileInst.file.GetAssetsOfType(AssetClassID.Shader));
+
+            foreach (var shaderInf in shadersToLoad)
             {
-                Console.WriteLine("Shader asset not found or couldn't be read.");
-                return;
+                var shaderBf = manager.GetBaseField(afileInst, shaderInf);
+                if (shaderBf == null)
+                {
+                    Console.WriteLine("Shader asset not found or couldn't be read.");
+                    return;
+                }
+
+                var shaderName = shaderBf["m_ParsedForm"]["m_Name"].AsString;
+                var shaderProcessor = new ShaderProcessor(shaderBf, ver.Value, platform);
+                string shaderText = shaderProcessor.Process();
+
+                Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "out", Path.GetDirectoryName(shaderName)!));
+                File.WriteAllText($"{Path.Combine(Environment.CurrentDirectory, "out", shaderName)}.shader", shaderText);
+                Console.WriteLine($"{shaderName} decompiled");
             }
-
-            var shaderName = shaderBf["m_ParsedForm"]["m_Name"].AsString;
-            var shaderProcessor = new ShaderProcessor(shaderBf, ver.Value, platform);
-            string shaderText = shaderProcessor.Process();
-
-            Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "out", Path.GetDirectoryName(shaderName)!));
-            File.WriteAllText($"{Path.Combine(Environment.CurrentDirectory, "out", shaderName)}.shader", shaderText);
-            Console.WriteLine($"{shaderName} decompiled");
         }
     }
 }
