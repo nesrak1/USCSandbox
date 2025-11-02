@@ -50,8 +50,8 @@ namespace USCSandbox
                 }
             }
 
-            var bundlePath = args[0];
-            if (args.Length == 1)
+            var bundlePath = argList[0];
+            if (argList.Count == 1)
             {
                 var bundleFile = manager.LoadBundleFile(bundlePath, true);
                 var dirInfs = bundleFile.file.BlockAndDirInfo.DirectoryInfos;
@@ -66,8 +66,8 @@ namespace USCSandbox
                 return;
             }
 
-            var assetsFileName = args[1];
-            if (args.Length == 2)
+            var assetsFileName = argList[1];
+            if (argList.Count == 2)
             {
                 if (bundlePath != "null")
                 {
@@ -99,8 +99,8 @@ namespace USCSandbox
             }
 
             var shaderPathId = -1L;
-            if (args.Length > 2)
-                shaderPathId = long.Parse(args[2]);
+            if (argList.Count > 2)
+                shaderPathId = long.Parse(argList[2]);
 
             Dictionary<long, string> files = [];
             if (bundlePath != "null")
