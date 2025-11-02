@@ -10,17 +10,45 @@ namespace USCSandbox
         {
             if (args.Length < 1)
             {
-                Console.WriteLine("USCS");
+                Console.WriteLine("USCS [bundle path] [assets path] [shader path id] <--platform> <--version>");
                 Console.WriteLine("  [bundle path (or \"null\" for no bundle)]");
                 Console.WriteLine("  [assets path (or file name in bundle)]");
                 Console.WriteLine("  <shader path id (or skip this arg for all shaders)>");
-                Console.WriteLine("  <shader platform: [d3d11, Switch] (or skip this arg for d3d11)>");
+                Console.WriteLine("  --platform <[d3d11, Switch] (or skip this arg for d3d11)>");
+                Console.WriteLine("  --version <unity version override>");
                 return;
             }
 
             var manager = new AssetsManager();
             AssetsFileInstance afileInst;
-            UnityVersion ver;
+
+            GPUPlatform platform = GPUPlatform.d3d11;
+            UnityVersion? ver = null;
+
+            List<string> argList = [];
+            for (var i = 0; i < args.Length; i++)
+            {
+                var arg = args[i];
+                if (arg.StartsWith("--"))
+                {
+                    switch (arg)
+                    {
+                        case "--platform":
+                            platform = Enum.Parse<GPUPlatform>(args[++i]);
+                            break;
+                        case "--version":
+                            ver = UnityVersion.Parse(args[++i]);
+                            break;
+                        default:
+                            Console.WriteLine($"Optional argmuent {arg} is invalid.");
+                            return;
+                    }
+                }
+                else
+                {
+                    argList.Add(arg);
+                }
+            }
 
             var bundlePath = args[0];
             if (args.Length == 1)
@@ -74,29 +102,43 @@ namespace USCSandbox
             if (args.Length > 2)
                 shaderPathId = long.Parse(args[2]);
 
-            var shaderPlatform = args.Length > 3
-                ? Enum.Parse<GPUPlatform>(args[3])
-                : GPUPlatform.d3d11;
-
             Dictionary<long, string> files = [];
             if (bundlePath != "null")
             {
                 var bundleFile = manager.LoadBundleFile(bundlePath, true);
                 afileInst = manager.LoadAssetsFileFromBundle(bundleFile, assetsFileName);
 
-                var verStr = bundleFile.file.Header.EngineVersion;
-                manager.LoadClassPackage("classdata.tpk");
-                manager.LoadClassDatabaseFromPackage(verStr);
-                ver = UnityVersion.Parse(verStr);
+                if (ver is null)
+                {
+                    var verStr = bundleFile.file.Header.EngineVersion;
+                    if (verStr != "0.0.0")
+                    {
+                        manager.LoadClassPackage("classdata.tpk");
+                        manager.LoadClassDatabaseFromPackage(verStr);
+                        ver = UnityVersion.Parse(verStr);
+                    }
+                }
             }
             else
             {
                 afileInst = manager.LoadAssetsFile(assetsFileName);
 
-                var verStr = afileInst.file.Metadata.UnityVersion;
-                manager.LoadClassPackage("classdata.tpk");
-                manager.LoadClassDatabaseFromPackage(verStr);
-                ver = UnityVersion.Parse(verStr);
+                if (ver is null)
+                {
+                    var verStr = afileInst.file.Metadata.UnityVersion;
+                    if (verStr != "0.0.0")
+                    {
+                        manager.LoadClassPackage("classdata.tpk");
+                        manager.LoadClassDatabaseFromPackage(verStr);
+                        ver = UnityVersion.Parse(verStr);
+                    }
+                }
+            }
+
+            if (ver is null)
+            {
+                Console.WriteLine("File version was stripped. Please set --version flag.");
+                return;
             }
 
             var shaderBf = manager.GetBaseField(afileInst, shaderPathId);
@@ -107,7 +149,7 @@ namespace USCSandbox
             }
 
             var shaderName = shaderBf["m_ParsedForm"]["m_Name"].AsString;
-            var shaderProcessor = new ShaderProcessor(shaderBf, ver, shaderPlatform);
+            var shaderProcessor = new ShaderProcessor(shaderBf, ver.Value, platform);
             string shaderText = shaderProcessor.Process();
 
             Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "out", Path.GetDirectoryName(shaderName)!));
