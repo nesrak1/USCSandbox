@@ -118,9 +118,8 @@ namespace USCSandbox
                     var verStr = bundleFile.file.Header.EngineVersion;
                     if (verStr != "0.0.0")
                     {
-                        manager.LoadClassPackage("classdata.tpk");
-                        manager.LoadClassDatabaseFromPackage(verStr);
-                        ver = UnityVersion.Parse(verStr);
+                        var fixedVerStr = new AssetsTools.NET.Extra.UnityVersion(verStr).ToString();
+                        ver = UnityVersion.Parse(fixedVerStr);
                     }
                 }
             }
@@ -133,12 +132,14 @@ namespace USCSandbox
                     var verStr = afileInst.file.Metadata.UnityVersion;
                     if (verStr != "0.0.0")
                     {
-                        manager.LoadClassPackage("classdata.tpk");
-                        manager.LoadClassDatabaseFromPackage(verStr);
-                        ver = UnityVersion.Parse(verStr);
+                        var fixedVerStr = new AssetsTools.NET.Extra.UnityVersion(verStr).ToString();
+                        ver = UnityVersion.Parse(fixedVerStr);
                     }
                 }
             }
+
+            manager.LoadClassPackage("classdata.tpk");
+            manager.LoadClassDatabaseFromPackage(ver.ToString());
 
             if (ver is null)
             {
