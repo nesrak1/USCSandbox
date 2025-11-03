@@ -138,14 +138,14 @@ namespace USCSandbox
                 }
             }
 
-            manager.LoadClassPackage("classdata.tpk");
-            manager.LoadClassDatabaseFromPackage(ver.ToString());
-
             if (ver is null)
             {
                 Console.WriteLine("File version was stripped. Please set --version flag.");
                 return;
             }
+
+            manager.LoadClassPackage("classdata.tpk");
+            manager.LoadClassDatabaseFromPackage(ver.ToString());
 
             var shadersToLoad = new List<AssetFileInfo>();
             if (shaderPathId != 0)
