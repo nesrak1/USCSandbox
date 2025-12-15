@@ -135,11 +135,11 @@ public static class NvnShaderConverter
 
             foreach (var stage in stages)
             {
-                byte[] stageBody = new byte[stage.ShaderBodyLen];
+                byte[] stageBody = new byte[stage.ShaderBodyLen - SWITCH_DATA_OFFSET];
 
                 // it's ok if we don't read everything since the rest will be 00s
                 data.Position = START_OF_SHADER_DATA + stage.DataStart + stage.HeaderLen + SWITCH_DATA_OFFSET;
-                data.Read(stageBody, 0, (int)stage.ShaderBodyLen);
+                data.Read(stageBody, 0, stageBody.Length);
 
                 stage.TransCtx = Translator.CreateContext(0, new GpuAccessor(stageBody), opt);
             }
@@ -172,11 +172,11 @@ public static class NvnShaderConverter
                 ShaderBodyLen = shaderBodyLen
             };
 
-            byte[] stageBody = new byte[shaderBodyLen];
+            byte[] stageBody = new byte[shaderBodyLen - SWITCH_DATA_OFFSET];
 
             // it's ok if we don't read everything since the rest will be 00s
             data.Position = START_OF_SHADER_DATA + stage.DataStart + stage.HeaderLen + SWITCH_DATA_OFFSET;
-            data.Read(stageBody, 0, (int)shaderBodyLen);
+            data.Read(stageBody, 0, stageBody.Length);
 
             stage.TransCtx = Translator.CreateContext(0, new GpuAccessor(stageBody), opt);
 
