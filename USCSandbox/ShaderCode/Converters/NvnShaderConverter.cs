@@ -94,7 +94,6 @@ public static class NvnShaderConverter
             const int FIELD_COUNT = 4;
             const int ROW_LEN = MAX_STAGE_COUNT * sizeof(int);
             const int START_OF_SHADER_DATA = ROW_LEN * FIELD_COUNT;
-            const int SHADER_BODY_LEN_OFFSET = 0x704;
             const int SWITCH_DATA_OFFSET = 0x30;
 
             Span<byte> mergedHeader = new byte[ROW_LEN * FIELD_COUNT];
@@ -130,21 +129,17 @@ public static class NvnShaderConverter
                     Unk00 = unk00,
                     DataStart = dataStart,
                     HeaderLen = headerLen,
-                    StorageFlags = storageFlags
+                    ShaderBodyLen = storageFlags
                 });
             }
 
             foreach (var stage in stages)
             {
-                data.Position = START_OF_SHADER_DATA + stage.DataStart + SHADER_BODY_LEN_OFFSET;
-                data.Read(tmpBuf[..sizeof(int)]);
-
-                int shaderBodyLen = BinaryPrimitives.ReadInt32LittleEndian(tmpBuf[..sizeof(int)]);
-                byte[] stageBody = new byte[shaderBodyLen];
+                byte[] stageBody = new byte[stage.ShaderBodyLen];
 
                 // it's ok if we don't read everything since the rest will be 00s
                 data.Position = START_OF_SHADER_DATA + stage.DataStart + stage.HeaderLen + SWITCH_DATA_OFFSET;
-                data.Read(stageBody, 0, shaderBodyLen);
+                data.Read(stageBody, 0, (int)stage.ShaderBodyLen);
 
                 stage.TransCtx = Translator.CreateContext(0, new GpuAccessor(stageBody), opt);
             }
@@ -156,7 +151,6 @@ public static class NvnShaderConverter
             // older separated version
             const int HEADER_SIZE = 0x10;
             const int START_OF_SHADER_DATA = HEADER_SIZE;
-            const int SHADER_BODY_LEN_OFFSET = 0x704;
             const int SWITCH_DATA_OFFSET = 0x30;
 
             Span<byte> singleHeader = new byte[HEADER_SIZE];
@@ -167,7 +161,7 @@ public static class NvnShaderConverter
             var kind = (NvnShaderStageKind)BinaryPrimitives.ReadInt32LittleEndian(singleHeader[0..(0 + sizeof(int))]);
             uint unk00 = BinaryPrimitives.ReadUInt32LittleEndian(singleHeader[4..(4 + sizeof(uint))]);
             int headerLen = BinaryPrimitives.ReadInt32LittleEndian(singleHeader[8..(8 + sizeof(int))]);
-            uint storageFlags = BinaryPrimitives.ReadUInt32LittleEndian(singleHeader[12..(12 + sizeof(uint))]);
+            uint shaderBodyLen = BinaryPrimitives.ReadUInt32LittleEndian(singleHeader[12..(12 + sizeof(uint))]);
 
             var stage = new NvnShaderStage()
             {
@@ -175,18 +169,14 @@ public static class NvnShaderConverter
                 Unk00 = unk00,
                 DataStart = 0,
                 HeaderLen = headerLen,
-                StorageFlags = storageFlags
+                ShaderBodyLen = shaderBodyLen
             };
 
-            data.Position = START_OF_SHADER_DATA + SHADER_BODY_LEN_OFFSET;
-            data.Read(tmpBuf[..sizeof(int)]);
-
-            int shaderBodyLen = BinaryPrimitives.ReadInt32LittleEndian(tmpBuf[..sizeof(int)]);
             byte[] stageBody = new byte[shaderBodyLen];
 
             // it's ok if we don't read everything since the rest will be 00s
             data.Position = START_OF_SHADER_DATA + stage.DataStart + stage.HeaderLen + SWITCH_DATA_OFFSET;
-            data.Read(stageBody, 0, shaderBodyLen);
+            data.Read(stageBody, 0, (int)shaderBodyLen);
 
             stage.TransCtx = Translator.CreateContext(0, new GpuAccessor(stageBody), opt);
 
@@ -240,7 +230,7 @@ public static class NvnShaderConverter
         public uint Unk00;
         public int DataStart; // only on merged
         public int HeaderLen;
-        public uint StorageFlags; // unknown purpose
+        public uint ShaderBodyLen;
         public TranslatorContext? TransCtx;
     }
 
