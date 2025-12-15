@@ -5,16 +5,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="AssetRipper.Primitives">
-      <HintPath>..\Libs\AssetRipper.Primitives.dll</HintPath>
-    </Reference>
-    <Reference Include="AssetsTools.NET">
-      <HintPath>..\Libs\AssetsTools.NET.dll</HintPath>
-    </Reference>
+    <PackageReference Include="AssetRipper.Primitives" Version="3.2.0" />
+    <PackageReference Include="AssetsTools.NET" Version="3.0.2" />
     <Reference Include="MsgPack">
       <HintPath>..\Libs\MsgPack.dll</HintPath>
     </Reference>
@@ -31,5 +26,21 @@
       <HintPath>..\Libs\Spv.Generator.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <Target Name="USCAfterBuild" AfterTargets="AfterBuild" Condition="'$(SolutionDir)' != '*Undefined*'">
+    <ItemGroup>
+      <Files Include="$(SolutionDir)Files\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Files)" DestinationFolder="$(OutputPath)" ContinueOnError="true" />
+    <MakeDir Directories="$(OutputPath)plugins" ContinueOnError="true" />
+  </Target>
+
+  <Target Name="USCAfterPublish" AfterTargets="Publish" Condition="'$(SolutionDir)' != '*Undefined*'">
+    <ItemGroup>
+      <Files Include="$(SolutionDir)Files\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Files)" DestinationFolder="$(PublishDir)" ContinueOnError="true" />
+    <MakeDir Directories="$(PublishDir)plugins" ContinueOnError="true" />
+  </Target>
 
 </Project>
