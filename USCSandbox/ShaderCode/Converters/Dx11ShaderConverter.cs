@@ -60,7 +60,7 @@ public static class Dx11ShaderConverter
                 .Order()
                 .ToArray();
 
-            subProgs.Add(new Dx11ShaderSubprogram(dxShader, uShaderProg, comboKeywords));
+            subProgs.Add(new Dx11ShaderSubprogram(dxShader, shaderParams, uShaderProg, comboKeywords));
         }
 
         return subProgs;
@@ -130,12 +130,16 @@ public static class Dx11ShaderConverter
     public class Dx11ShaderSubprogram
     {
         public DirectXCompiledShader DxShader;
+        public ShaderParameters Parameters;
         public UShaderProgram UShaderProg;
         public string[] Keywords;
 
-        public Dx11ShaderSubprogram(DirectXCompiledShader dxShader, UShaderProgram uShaderProg, string[] keywords)
+        public Dx11ShaderSubprogram(
+            DirectXCompiledShader dxShader, ShaderParameters parameters,
+            UShaderProgram uShaderProg, string[] keywords)
         {
             DxShader = dxShader;
+            Parameters = parameters;
             UShaderProg = uShaderProg;
             Keywords = keywords;
         }

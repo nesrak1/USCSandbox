@@ -28,12 +28,12 @@ public class USILObviousUIntFixer : IUsilOptimizer
             {
                 if (operand.OperandType == UsilOperandType.ImmediateFloat)
                 {
-                    int count = operand.ImmValueFloat.Length;
-                    operand.ImmValueInt = new int[count];
+                    int count = operand.ImmFloat.Length;
+                    operand.ImmInt = new int[count];
                     for (int j = 0; j < count; j++)
                     {
                         //int intValue = BitConverter.SingleToInt32Bits(operand.immValueFloat[j]);
-                        operand.ImmValueInt[j] = (int)operand.ImmValueFloat[j];
+                        operand.ImmInt[j] = (int)operand.ImmFloat[j];
                     }
                     operand.OperandType = UsilOperandType.ImmediateInt;
                 }

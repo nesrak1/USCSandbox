@@ -37,7 +37,7 @@ public class SerializedSubProgram
             if (ParameterBlobIndex == uint.MaxValue)
             {
                 throw new NotSupportedException(
-                    "Either a ParameterBlobIndex has to be set or there" +
+                    "Either a ParameterBlobIndex has to be set or there " +
                     "have to be params. Somehow we have neither.");
             }
         }

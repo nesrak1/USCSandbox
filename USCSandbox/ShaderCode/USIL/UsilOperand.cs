@@ -6,8 +6,8 @@ public class UsilOperand
 {
     public UsilOperandType OperandType;
 
-    public int[] ImmValueInt = Array.Empty<int>();
-    public float[] ImmValueFloat = Array.Empty<float>();
+    public int[] ImmInt = Array.Empty<int>();
+    public float[] ImmFloat = Array.Empty<float>();
 
     public bool AbsoluteValue;
     public bool Negative;
@@ -52,8 +52,8 @@ public class UsilOperand
     {
         OperandType = original.OperandType;
 
-        ImmValueInt = original.ImmValueInt;
-        ImmValueFloat = original.ImmValueFloat;
+        ImmInt = original.ImmInt;
+        ImmFloat = original.ImmFloat;
 
         AbsoluteValue = original.AbsoluteValue;
         Negative = original.Negative;
@@ -90,14 +90,14 @@ public class UsilOperand
     public UsilOperand(int value)
     {
         OperandType = UsilOperandType.ImmediateInt;
-        ImmValueInt = new[] { value };
+        ImmInt = new[] { value };
         Mask = new[] { 0 };
     }
 
     public UsilOperand(float value)
     {
         OperandType = UsilOperandType.ImmediateFloat;
-        ImmValueFloat = new[] { value };
+        ImmFloat = new[] { value };
         Mask = new[] { 0 };
     }
 
@@ -106,9 +106,9 @@ public class UsilOperand
         switch (OperandType)
         {
             case UsilOperandType.ImmediateFloat:
-                return ImmValueFloat.Length;
+                return ImmFloat.Length;
             case UsilOperandType.ImmediateInt:
-                return ImmValueInt.Length;
+                return ImmInt.Length;
             case UsilOperandType.Multiple:
                 int multipleSum = 0;
                 foreach (UsilOperand operand in Children)
@@ -206,22 +206,22 @@ public class UsilOperand
                 }
                 case UsilOperandType.ImmediateInt:
                 {
-                    if (ImmValueInt.Length == 1)
+                    if (ImmInt.Length == 1)
                     {
-                        body = $"{ImmValueInt[0]}";
+                        body = $"{ImmInt[0]}";
                     }
                     else
                     {
-                        body += $"int{ImmValueInt.Length}(";
-                        for (int i = 0; i < ImmValueInt.Length; i++)
+                        body += $"int{ImmInt.Length}(";
+                        for (int i = 0; i < ImmInt.Length; i++)
                         {
-                            if (i != ImmValueInt.Length - 1)
+                            if (i != ImmInt.Length - 1)
                             {
-                                body += $"{ImmValueInt[i]}, ";
+                                body += $"{ImmInt[i]}, ";
                             }
                             else
                             {
-                                body += $"{ImmValueInt[i]}";
+                                body += $"{ImmInt[i]}";
                             }
                         }
                         body += ")";
@@ -230,25 +230,25 @@ public class UsilOperand
                 }
                 case UsilOperandType.ImmediateFloat:
                 {
-                    if (ImmValueFloat.Length == 1)
+                    if (ImmFloat.Length == 1)
                     {
                         // todo: check if number can't possibly be expressed as float and write in hex.
                         // todo: float precision isn't correct atm. add precision check somewhere.
-                        body = $"{ImmValueFloat[0].ToString("0.0#######", CultureInfo.InvariantCulture)}";
+                        body = $"{ImmFloat[0].ToString("0.0#######", CultureInfo.InvariantCulture)}";
                     }
                     else
                     {
                         // todo: if all numbers are the same and it matches the mask, use it only once
-                        body += $"float{ImmValueFloat.Length}(";
-                        for (int i = 0; i < ImmValueFloat.Length; i++)
+                        body += $"float{ImmFloat.Length}(";
+                        for (int i = 0; i < ImmFloat.Length; i++)
                         {
-                            if (i != ImmValueFloat.Length - 1)
+                            if (i != ImmFloat.Length - 1)
                             {
-                                body += $"{ImmValueFloat[i].ToString("0.0#######", CultureInfo.InvariantCulture)}, ";
+                                body += $"{ImmFloat[i].ToString("0.0#######", CultureInfo.InvariantCulture)}, ";
                             }
                             else
                             {
-                                body += $"{ImmValueFloat[i].ToString("0.0#######", CultureInfo.InvariantCulture)}";
+                                body += $"{ImmFloat[i].ToString("0.0#######", CultureInfo.InvariantCulture)}";
                             }
                         }
                         body += ")";

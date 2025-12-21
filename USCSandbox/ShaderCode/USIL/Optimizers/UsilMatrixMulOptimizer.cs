@@ -140,7 +140,7 @@ public class UsilMatrixMulOptimizer : IUsilOptimizer
             UsilOperand mulInput1Operand = new UsilOperand()
             {
                 OperandType = UsilOperandType.ImmediateFloat,
-                ImmValueFloat = new[] { 1f },
+                ImmFloat = new[] { 1f },
             };
 
             UsilOperand mulInputVec4Operand = new UsilOperand()

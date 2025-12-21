@@ -31,7 +31,7 @@ public class UsilAndOptimizer : IUsilOptimizer
                 UsilOperand leftOperand = instruction.SrcOperands[0];
                 UsilOperand rightOperand = instruction.SrcOperands[1];
                 if (rightOperand.OperandType == UsilOperandType.ImmediateFloat &&
-                    rightOperand.ImmValueFloat[0] == 1)
+                    rightOperand.ImmFloat[0] == 1)
                 {
                     instruction.InstructionType = UsilInstructionType.MoveConditional;
                     instruction.SrcOperands = new List<UsilOperand>
@@ -40,12 +40,12 @@ public class UsilAndOptimizer : IUsilOptimizer
                         new UsilOperand()
                         {
                             OperandType = UsilOperandType.ImmediateFloat,
-                            ImmValueFloat = new float[1] { 1f }
+                            ImmFloat = new float[1] { 1f }
                         },
                         new UsilOperand()
                         {
                             OperandType = UsilOperandType.ImmediateFloat,
-                            ImmValueFloat = new float[1] { 0f }
+                            ImmFloat = new float[1] { 0f }
                         }
                     };
 
@@ -71,7 +71,7 @@ public class UsilAndOptimizer : IUsilOptimizer
                             new UsilOperand()
                             {
                                 OperandType = UsilOperandType.ImmediateFloat,
-                                ImmValueFloat = new float[1] { 0f }
+                                ImmFloat = new float[1] { 0f }
                             }
                         };
                     }

@@ -405,7 +405,7 @@ public class DirectXProgramToUsil
                 {
                     if (immIsInt)
                     {
-                        usilOperand.ImmValueInt = new int[1]
+                        usilOperand.ImmInt = new int[1]
                         {
                             ConvertFloatToInt((float)dxOperand.immValues[0])
                         };
@@ -414,14 +414,14 @@ public class DirectXProgramToUsil
                              || Math.Abs((BitConverter.DoubleToInt64Bits(dxOperand.immValues[0]) >> 52 & 0x7ff) - 1023)
                                  is > 100 and < 1023)
                     {
-                        usilOperand.ImmValueFloat = new float[1]
+                        usilOperand.ImmFloat = new float[1]
                         {
                             ConvertFloatToInt((float)dxOperand.immValues[0])
                         };
                     }
                     else
                     {
-                        usilOperand.ImmValueFloat = new float[1]
+                        usilOperand.ImmFloat = new float[1]
                         {
                             (float)dxOperand.immValues[0]
                         };
@@ -431,10 +431,10 @@ public class DirectXProgramToUsil
                 {
                     if (immIsInt)
                     {
-                        usilOperand.ImmValueInt = new int[mask.Length];
+                        usilOperand.ImmInt = new int[mask.Length];
                         for (int i = 0; i < mask.Length; i++)
                         {
-                            usilOperand.ImmValueInt[i] = ConvertFloatToInt((float)dxOperand.immValues[mask[i]]);
+                            usilOperand.ImmInt[i] = ConvertFloatToInt((float)dxOperand.immValues[mask[i]]);
                         }
                     }
                     else if (dxOperand.immValues
@@ -442,26 +442,26 @@ public class DirectXProgramToUsil
                                        || Math.Abs((BitConverter.DoubleToInt64Bits(x) >> 52 & 0x7ff) - 1023)
                                            is > 100 and < 1023))
                     {
-                        usilOperand.ImmValueFloat = new float[mask.Length];
+                        usilOperand.ImmFloat = new float[mask.Length];
                         for (int i = 0; i < mask.Length; i++)
                         {
-                            usilOperand.ImmValueFloat[i] = ConvertFloatToInt((float)dxOperand.immValues[mask[i]]);
+                            usilOperand.ImmFloat[i] = ConvertFloatToInt((float)dxOperand.immValues[mask[i]]);
                         }
                     }
                     else if (mask.Length > 0)
                     {
-                        usilOperand.ImmValueFloat = new float[mask.Length];
+                        usilOperand.ImmFloat = new float[mask.Length];
                         for (int i = 0; i < mask.Length; i++)
                         {
-                            usilOperand.ImmValueFloat[i] = (float)dxOperand.immValues[mask[i]];
+                            usilOperand.ImmFloat[i] = (float)dxOperand.immValues[mask[i]];
                         }
                     }
                     else
                     {
-                        usilOperand.ImmValueFloat = new float[dxOperand.immValues.Length];
+                        usilOperand.ImmFloat = new float[dxOperand.immValues.Length];
                         for (int i = 0; i < dxOperand.immValues.Length; i++)
                         {
-                            usilOperand.ImmValueFloat[i] = (float)dxOperand.immValues[i];
+                            usilOperand.ImmFloat[i] = (float)dxOperand.immValues[i];
                         }
                     }
                 }
@@ -2167,7 +2167,7 @@ public class DirectXProgramToUsil
         {
             UsilOperand vectorOperand = new UsilOperand();
             vectorOperand.OperandType = UsilOperandType.ImmediateFloat;
-            vectorOperand.ImmValueFloat = vector;
+            vectorOperand.ImmFloat = vector;
             vectorOperand.Mask = UsilConstants.XYZW_MASK;
             local.DefaultValues.Add(vectorOperand);
         }

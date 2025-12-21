@@ -48,6 +48,9 @@ public class UShaderFunctionToHlsl
             { UsilInstructionType.Truncate, new InstHandler(HandleTruncate) },
             { UsilInstructionType.IntToFloat, new InstHandler(HandleIntToFloat) },
             { UsilInstructionType.FloatToInt, new InstHandler(HandleFloatToInt) },
+            // { UsilInstructionType.FloatToUInt, new InstHandler(HandleFloatToInt) },
+            { UsilInstructionType.Negate, new InstHandler(HandleNegate) },
+            { UsilInstructionType.Clamp, new InstHandler(HandleClamp) },
             { UsilInstructionType.Sine, new InstHandler(HandleSine) },
             { UsilInstructionType.Cosine, new InstHandler(HandleCosine) },
             { UsilInstructionType.ShiftLeft, new InstHandler(HandleShiftLeft) },
@@ -417,6 +420,25 @@ public class UShaderFunctionToHlsl
         AppendLine($"{comment}{inst.DestOperand} = {value};");
     }
 
+    private void HandleNegate(UsilInstruction inst)
+    {
+        List<UsilOperand> srcOps = inst.SrcOperands;
+        string value = $"-{srcOps[0]}";
+        string comment = CommentString(inst);
+        AppendLine($"{comment}{inst.DestOperand} = {value};");
+    }
+
+    private void HandleClamp(UsilInstruction inst)
+    {
+        List<UsilOperand> srcOps = inst.SrcOperands;
+        string value = inst.InstructionType == UsilInstructionType.ClampUInt
+            ? $"clamp(uint({srcOps[0]}), uint({srcOps[1]}), uint({srcOps[2]}))"
+            : $"clamp({srcOps[0]}, {srcOps[1]}, {srcOps[2]})";
+
+        string comment = CommentString(inst);
+        AppendLine($"{comment}{inst.DestOperand} = {value};");
+    }
+
     private void HandleSine(UsilInstruction inst)
     {
         List<UsilOperand> srcOps = inst.SrcOperands;
@@ -439,7 +461,7 @@ public class UShaderFunctionToHlsl
         UsilOperand srcOp0 = srcOps[0];
         UsilOperand srcOp1 = srcOps[1];
 
-        // temp fix to prevent compile errors, still innacurate
+        // temp fix to prevent compile errors, still inaccurate
         int op0IntSize = srcOp0.GetValueCount();
         int op1IntSize = srcOp1.GetValueCount();
 
@@ -474,7 +496,7 @@ public class UShaderFunctionToHlsl
         UsilOperand srcOp0 = srcOps[0];
         UsilOperand srcOp1 = srcOps[1];
 
-        // temp fix to prevent compile errors, still innacurate
+        // temp fix to prevent compile errors, still inaccurate
         int op0IntSize = srcOp0.GetValueCount();
         int op1IntSize = srcOp1.GetValueCount();
 
@@ -516,7 +538,7 @@ public class UShaderFunctionToHlsl
         List<UsilOperand> srcOps = inst.SrcOperands;
         UsilOperand textureOperand = srcOps[2];
         int samplerTypeIdx = inst.InstructionType == UsilInstructionType.Sample ? 3 : 4;
-        bool samplerType = srcOps[samplerTypeIdx].ImmValueInt[0] == 1;
+        bool samplerType = srcOps[samplerTypeIdx].ImmInt[0] == 1;
         string args = $"{srcOps[2]}, {srcOps[0]}";
         string value;
         if (!samplerType)
@@ -552,7 +574,7 @@ public class UShaderFunctionToHlsl
     {
         List<UsilOperand> srcOps = inst.SrcOperands;
         UsilOperand textureOperand = srcOps[2];
-        bool samplerType = srcOps[4].ImmValueInt[0] == 1;
+        bool samplerType = srcOps[4].ImmInt[0] == 1;
         string args;
         if (srcOps[0].Mask.Length == 2) // texture2d
         {
@@ -626,7 +648,7 @@ public class UShaderFunctionToHlsl
         // 3DMigoto: _Buffer[srcAddress].val[srcByteOffset/4]; (with /4 literally part of the output lmao)
         // yo idk
         List<UsilOperand> srcOps = inst.SrcOperands;
-        string value = $"((float4[1]){srcOps[2]}.Load({srcOps[0]}))[{srcOps[1].ImmValueInt[0] / 16}]";
+        string value = $"((float4[1]){srcOps[2]}.Load({srcOps[0]}))[{srcOps[1].ImmInt[0] / 16}]";
         string comment = CommentString(inst);
         AppendLine($"{comment}{inst.DestOperand} = {value};");
     }
@@ -651,7 +673,7 @@ public class UShaderFunctionToHlsl
 
         List<string> args = new List<string>();
 
-        if (usilMipLevel.ImmValueFloat[0] == 0 && usilMipCount.OperandType == UsilOperandType.Null)
+        if (usilMipLevel.ImmFloat[0] == 0 && usilMipCount.OperandType == UsilOperandType.Null)
         {
             // shorter version (not checking the compiler did this correctly!)
             args.Add(usilWidth.ToString());
@@ -787,10 +809,10 @@ public class UShaderFunctionToHlsl
 
         UsilOperand iterRegOp = inst.SrcOperands[0];
         UsilOperand compOp = inst.SrcOperands[1];
-        UsilInstructionType compType = (UsilInstructionType)inst.SrcOperands[2].ImmValueInt[0];
-        UsilNumberType numberType = (UsilNumberType)inst.SrcOperands[3].ImmValueInt[0];
-        float addCount = inst.SrcOperands[4].ImmValueFloat[0]; // todo use an int instead of float when int incremented?
-        int depth = inst.SrcOperands[5].ImmValueInt[0];
+        UsilInstructionType compType = (UsilInstructionType)inst.SrcOperands[2].ImmInt[0];
+        UsilNumberType numberType = (UsilNumberType)inst.SrcOperands[3].ImmInt[0];
+        float addCount = inst.SrcOperands[4].ImmFloat[0]; // todo use an int instead of float when int incremented?
+        int depth = inst.SrcOperands[5].ImmInt[0];
 
         string numberTypeName = numberType switch
         {
@@ -799,7 +821,11 @@ public class UShaderFunctionToHlsl
             UsilNumberType.UnsignedInt => "unsigned int",
             _ => "?"
         };
-        string iterName = UsilConstants.ITER_CHARS[depth].ToString(); // better hope someone's not crazy enough to go over
+
+        string iterName = depth < UsilConstants.ITER_CHARS.Length
+            ? UsilConstants.ITER_CHARS[depth].ToString()
+            : $"iter{depth}";
+
         string compText = compType switch
         {
             UsilInstructionType.Equal => "==",

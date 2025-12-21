@@ -26,9 +26,13 @@ public class UsilInputOutputMetadder : IUsilOptimizer
         if (operand.OperandType == UsilOperandType.InputRegister)
         {
             int searchMask = operand.Mask.Length != 0 ? 1 << operand.Mask[0] : 0;
-            UsilInputOutput input = shader.Inputs.First(
+            UsilInputOutput? input = shader.Inputs.FirstOrDefault(
                 i => i.Register == operand.RegisterIndex && (searchMask & i.Mask) == searchMask
             );
+
+            // bail since we can't find the input
+            if (input == null)
+                return;
 
             // correct mask
             operand.Mask = MatchMaskToInputOutput(operand.Mask, input.Mask, true);

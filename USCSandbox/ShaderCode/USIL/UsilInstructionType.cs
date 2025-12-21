@@ -26,6 +26,9 @@ public enum UsilInstructionType
     UIntToFloat, //dx: utof
     FloatToInt, //dx: ftoi
     FloatToUInt, //dx: ftou
+    Negate, //dx: --- (mul,ineg), ryu: Negate
+    Clamp, //dx: ---, ryu: Clamp
+    ClampUInt, //dx: ---, ryu: ClampU32
 
     Minimum, //dx: min
     Maximum, //dx: max

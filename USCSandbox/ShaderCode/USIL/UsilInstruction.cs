@@ -5,7 +5,7 @@ public class UsilInstruction
 {
     public UsilInstructionType InstructionType;
     public UsilOperand? DestOperand;
-    public List<UsilOperand> SrcOperands = new();
+    public List<UsilOperand> SrcOperands = [];
     public bool Saturate;
     public bool Commented;
 

@@ -105,12 +105,12 @@ public class UsilForLoopOptimizer : IUsilOptimizer
                             numberType = UsilNumberType.Int;
                         }
 
-                        addCount = addIterInst.SrcOperands[1].ImmValueInt[0];
+                        addCount = addIterInst.SrcOperands[1].ImmInt[0];
                     }
                     else
                     {
                         numberType = UsilNumberType.Float;
-                        addCount = addIterInst.SrcOperands[1].ImmValueFloat[0];
+                        addCount = addIterInst.SrcOperands[1].ImmFloat[0];
                     }
 
                     if (addIterInst.InstructionType == UsilInstructionType.Subtract)

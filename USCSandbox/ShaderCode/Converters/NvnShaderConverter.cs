@@ -71,7 +71,7 @@ public static class NvnShaderConverter
                     .ToArray();
 
                 //! assigned after construction
-                subProgs.Add(new NvnShaderSubprogram(stage.TransCtx!, uShaderProg, comboKeywords));
+                subProgs.Add(new NvnShaderSubprogram(stage.TransCtx!, shaderParams, uShaderProg, comboKeywords));
             }
         }
 
@@ -213,12 +213,16 @@ public static class NvnShaderConverter
     public class NvnShaderSubprogram
     {
         public TranslatorContext NvnShader;
+        public ShaderParameters Parameters;
         public UShaderProgram UShaderProg;
         public string[] Keywords;
 
-        public NvnShaderSubprogram(TranslatorContext nvnShader, UShaderProgram uShaderProg, string[] keywords)
+        public NvnShaderSubprogram(
+            TranslatorContext nvnShader, ShaderParameters parameters,
+            UShaderProgram uShaderProg, string[] keywords)
         {
             NvnShader = nvnShader;
+            Parameters = parameters;
             UShaderProg = uShaderProg;
             Keywords = keywords;
         }

@@ -43,7 +43,7 @@ public class UsilAddNegativeOptimizer : IUsilOptimizer
         {
             case UsilOperandType.ImmediateInt:
             {
-                foreach (int imm in operand.ImmValueInt)
+                foreach (int imm in operand.ImmInt)
                 {
                     // this includes 0 as being ok for negative. hopefully there are no +/- 0 instructions?
                     if (imm > 0)
@@ -56,7 +56,7 @@ public class UsilAddNegativeOptimizer : IUsilOptimizer
 
             case UsilOperandType.ImmediateFloat:
             {
-                foreach (float imm in operand.ImmValueFloat)
+                foreach (float imm in operand.ImmFloat)
                 {
                     if (imm > 0)
                     {
@@ -89,9 +89,9 @@ public class UsilAddNegativeOptimizer : IUsilOptimizer
         {
             case UsilOperandType.ImmediateInt:
             {
-                for (int i = 0; i < operand.ImmValueInt.Length; i++)
+                for (int i = 0; i < operand.ImmInt.Length; i++)
                 {
-                    operand.ImmValueInt[i] = -operand.ImmValueInt[i];
+                    operand.ImmInt[i] = -operand.ImmInt[i];
                 }
 
                 break;
@@ -99,9 +99,9 @@ public class UsilAddNegativeOptimizer : IUsilOptimizer
 
             case UsilOperandType.ImmediateFloat:
             {
-                for (int i = 0; i < operand.ImmValueFloat.Length; i++)
+                for (int i = 0; i < operand.ImmFloat.Length; i++)
                 {
-                    operand.ImmValueFloat[i] = -operand.ImmValueFloat[i];
+                    operand.ImmFloat[i] = -operand.ImmFloat[i];
                 }
 
                 break;

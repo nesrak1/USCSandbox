@@ -1,9 +1,11 @@
 ﻿using AssetsTools.NET;
 using System.Globalization;
+using System.Text;
 using USCSandbox.Common;
 using USCSandbox.Metadata;
 using USCSandbox.ShaderCode.Converters;
 using USCSandbox.ShaderCode.UShader;
+using USCSandbox.ShaderMetadata;
 using UnityVersion = AssetRipper.Primitives.UnityVersion;
 
 namespace USCSandbox.Processor;
@@ -175,11 +177,32 @@ public class ShaderTextWriter
             WritePassState(pass.State);
             _sb.AppendLine("");
 
+            void WriteParams(ShaderParameters shaderParams)
+            {
+                if (shaderParams != null)
+                {
+                    //_sb.Append(new string(' ', _sb.GetIndent() * 4));
+                    _sb.AppendLine($"// CBs for {platformId}");
+
+                    foreach (ConstantBuffer cbuffer in shaderParams.ConstantBuffers)
+                    {
+                        _sb.AppendNoIndent(WritePassCBuffer(shaderParams, [], cbuffer, _sb.GetIndent()));
+                    }
+
+                    //_sb.Append(new string(' ', _sb.GetIndent() * 4));
+                    _sb.AppendLine($"// Textures for {platformId}");
+
+                    _sb.AppendNoIndent(WritePassTextures(shaderParams, [], _sb.GetIndent()));
+                }
+            }
+
             if (platformId == GPUPlatform.d3d11)
             {
                 var dx11SubPrograms = Dx11ShaderConverter.Convert(pass, blobMan, _engVer);
                 foreach (var subProg in dx11SubPrograms)
                 {
+                    WriteParams(subProg.Parameters);
+
                     var hlslConv = new UShaderFunctionToHlsl(subProg.UShaderProg, _sb.GetIndent());
                     _sb.AppendLine($"// Keywords: {string.Join(" && ", subProg.Keywords)}");
                     _sb.AppendNoIndent(hlslConv.WriteStruct());
@@ -193,6 +216,8 @@ public class ShaderTextWriter
                 var nvnSubprograms = NvnShaderConverter.Convert(pass, blobMan, _engVer);
                 foreach (var subProg in nvnSubprograms)
                 {
+                    WriteParams(subProg.Parameters);
+
                     var hlslConv = new UShaderFunctionToHlsl(subProg.UShaderProg, _sb.GetIndent());
                     _sb.AppendLine($"// Keywords: {string.Join(" && ", subProg.Keywords)}");
                     _sb.AppendNoIndent(hlslConv.WriteStruct());
@@ -201,6 +226,9 @@ public class ShaderTextWriter
                     _sb.AppendLine("");
                 }
             }
+
+            //
+
 
             // skipping other programs at this time
             //SerializedProgram vertInfo, fragInfo;
@@ -487,5 +515,109 @@ public class ShaderTextWriter
             }
             _sb.AppendNoIndent("\n");
         }
+    }
+
+    // todo: REPLACE
+    private string WritePassCBuffer(
+        ShaderParameters shaderParams, HashSet<string> declaredCBufs,
+        ConstantBuffer? cbuffer, int depth)
+    {
+        StringBuilder sb = new StringBuilder();
+        if (cbuffer != null)
+        {
+            bool nonGlobalCbuffer = cbuffer.Name != "$Globals";
+            int cbufferIndex = shaderParams.ConstantBuffers.IndexOf(cbuffer);
+
+            bool wroteCbufferHeaderYet = false;
+
+            char[] chars = new char[] { 'x', 'y', 'z', 'w' };
+            List<ConstantBufferParameter> allParams = cbuffer.CBParams;
+            foreach (ConstantBufferParameter param in allParams)
+            {
+                string typeName = HlslNamingUtils.GetConstantBufferParamTypeName(param);
+                string name = param.ParamName;
+
+                // skip things like unity_MatrixVP if they show up in $Globals
+                if (UnityShaderConstants.INCLUDED_UNITY_PROP_NAMES.Contains(name))
+                {
+                    continue;
+                }
+
+                if (!wroteCbufferHeaderYet && nonGlobalCbuffer)
+                {
+                    sb.Append(new string(' ', depth * 4)); // todo: new stringbuilder
+                    sb.AppendLine($"// CBUFFER_START({cbuffer.Name}) // {cbufferIndex}");
+                    depth++;
+                }
+
+                if (!declaredCBufs.Contains(name))
+                {
+                    if (param.ArraySize > 0)
+                    {
+                        sb.Append(new string(' ', depth * 4));
+                        if (nonGlobalCbuffer)
+                            sb.Append("// ");
+                        sb.AppendLine($"{typeName} {name}[{param.ArraySize}]; // {param.Index} (starting at cb{cbufferIndex}[{param.Index / 16}].{chars[param.Index % 16 / 4]})");
+                    }
+                    else
+                    {
+                        sb.Append(new string(' ', depth * 4));
+                        if (nonGlobalCbuffer && !cbuffer.Name.StartsWith("UnityPerDrawSprite"))
+                            sb.Append("// ");
+                        sb.AppendLine($"{typeName} {name}; // {param.Index} (starting at cb{cbufferIndex}[{param.Index / 16}].{chars[param.Index % 16 / 4]})");
+                    }
+                    declaredCBufs.Add(name);
+                }
+
+                if (!wroteCbufferHeaderYet && nonGlobalCbuffer)
+                {
+                    depth--;
+                    sb.Append(new string(' ', depth * 4));
+                    sb.AppendLine("// CBUFFER_END");
+                    wroteCbufferHeaderYet = true;
+                }
+            }
+        }
+        return sb.ToString();
+    }
+
+    // todo: REPLACE
+
+
+    private string WritePassTextures(
+        ShaderParameters shaderParams, HashSet<string> declaredCBufs, int depth)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (TextureParameter param in shaderParams.TextureParameters)
+        {
+            string name = param.Name;
+            if (!declaredCBufs.Contains(name) && !UnityShaderConstants.BUILTIN_TEXTURE_NAMES.Contains(name))
+            {
+                sb.Append(new string(' ', depth * 4));
+                switch (param.Dim)
+                {
+                    case 2:
+                        sb.AppendLine($"sampler2D {name}; // {param.Index}");
+                        break;
+                    case 3:
+                        sb.AppendLine($"sampler3D {name}; // {param.Index}");
+                        break;
+                    case 4:
+                        sb.AppendLine($"samplerCUBE {name}; // {param.Index}");
+                        break;
+                    case 5:
+                        sb.AppendLine($"UNITY_DECLARE_TEX2DARRAY({name}); // {param.Index}");
+                        break;
+                    case 6:
+                        sb.AppendLine($"UNITY_DECLARE_TEXCUBEARRAY({name}); // {param.Index}");
+                        break;
+                    default:
+                        sb.AppendLine($"sampler2D {name}; // {param.Index} // Unsure of real type ({param.Dim})");
+                        break;
+                }
+                declaredCBufs.Add(name);
+            }
+        }
+        return sb.ToString();
     }
 }
