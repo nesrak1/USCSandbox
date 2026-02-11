@@ -5,6 +5,7 @@ using USCSandbox.Processor;
 using UnityVersion = AssetRipper.Primitives.UnityVersion;
 
 namespace USCSandbox.Metadata;
+
 public class SerializedShader
 {
     private readonly AssetTypeValueField _shaderBf;
@@ -60,12 +61,24 @@ public class SerializedShader
         if (platformIndex == -1)
             return null;
 
-        var decompressedLength = CompDecompLengths[platformIndex].Item2;
-        var decompressedBlob = new byte[decompressedLength];
-        var lz4Decoder = new Lz4DecoderStream(new MemoryStream(CompressedBlob));
-        lz4Decoder.Read(decompressedBlob, 0, (int)decompressedLength);
-        lz4Decoder.Dispose();
+        var compStream = new MemoryStream(CompressedBlob);
 
-        return new BlobManager(decompressedBlob, _engVer);
+        var blobs = new byte[CompDecompLengths.Count][];
+        for (var i = 0; i < CompDecompLengths.Count; i++)
+        {
+            var offset = Offsets[i];
+            var (compressedLength, decompressedLength) = CompDecompLengths[i];
+
+            var decompressedBlob = new byte[decompressedLength];
+
+            var segStream = new SegmentStream(compStream, offset, compressedLength);
+            var lz4Decoder = new Lz4DecoderStream(segStream);
+            lz4Decoder.Read(decompressedBlob, 0, (int)decompressedLength);
+            lz4Decoder.Dispose();
+
+            blobs[i] = decompressedBlob;
+        }
+
+        return new BlobManager(blobs, _engVer);
     }
 }

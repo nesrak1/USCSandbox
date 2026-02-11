@@ -32,6 +32,6 @@ public class SerializedProgramParameters
         UAVParams = SerializedMetadataHelpers.GetArrayFirstValue(field["m_UAVParams.Array"])
             .Select(p => p.AsInt).ToList();
         Samplers = SerializedMetadataHelpers.GetArrayFirstValue(field["m_Samplers.Array"])
-            .Select(p => p.AsInt).ToList();
+            .Select(p => p[0].AsInt).ToList();
     }
 }
