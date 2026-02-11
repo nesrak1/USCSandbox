@@ -3,6 +3,7 @@ using USCSandbox.Common;
 using UnityVersion = AssetRipper.Primitives.UnityVersion;
 
 namespace USCSandbox.ShaderMetadata;
+
 public class ShaderSubProgramData
 {
     public int ProgramType;
@@ -66,10 +67,10 @@ public class ShaderSubProgramData
 
         BindChannels = new ParserBindChannels(r);
 
-        ShaderParams = new ShaderParameters(r, version, false);
-        //ShaderParams = version.LessThan(2021)
-        //    ? new ShaderParameters(r, version, false)
-        //    : null; // read from ParameterBlob in >= 2021
+        bool dataInParameterBlob = r.Position == r.BaseStream.Length;
+        ShaderParams = !dataInParameterBlob
+            ? new ShaderParameters(r, version, false)
+            : null; // read from ParameterBlob in >= 2021.?.?
     }
 
     public ShaderGpuProgramType GetProgramType(UnityVersion version)
