@@ -7,7 +7,14 @@ on:
 
 jobs:
   build-usc-sandbox:
-    runs-on: ubuntu-latest
+    name: Build USC Sandbox for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
     steps:
       - uses: actions/checkout@v6
 
@@ -24,14 +31,14 @@ jobs:
         run: |
           dotnet build -c Release
 
-      - name: Get git revision
-        id: git-revision-check
+      - name: Get git HEAD
+        id: git-head-check
         shell: bash
         run: |
-          export GIT_REF="${GITHUB_REF##*/}"
-          echo "GIT_REF=${GIT_REF}" >> $GITHUB_OUTPUT
+          export GIT_HEAD="${GITHUB_REF#*/*/}"
+          echo "GIT_HEAD=${GIT_HEAD//\//__}" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v7
         with:
-          name: "USCSandbox-${{ steps.git-revision-check.outputs.GIT_REF }}"
+          name: "USCSandbox-${{ steps.git-head-check.outputs.GIT_REF }}-${{ matrix.os }}"
           path: ./USCSandbox/bin/Release/net8.0/*
