@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-usc-sandbox:
-    name: Build USC Sandbox for ${{ matrix.os }}
+    name: Build ${{ matrix.configuration}} binaries for USC Sandbox on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -44,4 +44,4 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: "USCSandbox-${{ matrix.configuration }}-${{ steps.git-head-check.outputs.GIT_REF }}-${{ matrix.os }}"
-          path: ./USCSandbox/bin/Release/net8.0/*
+          path: ./USCSandbox/bin/${{ matrix.configuration }}/net8.0/*
