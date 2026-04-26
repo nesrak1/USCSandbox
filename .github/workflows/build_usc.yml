@@ -1,0 +1,47 @@
+name: Build USC Sandbox
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-usc-sandbox:
+    name: Build ${{ matrix.configuration}} binaries for USC Sandbox on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        configuration:
+          - Debug
+          - Release
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up .NET 8.0
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Install dependencies
+        run: |
+          dotnet restore
+
+      - name: Build solution
+        run: |
+          dotnet build -c ${{ matrix.configuration }}
+
+      - name: Get git HEAD
+        id: git-head-check
+        shell: bash
+        run: |
+          export GIT_HEAD="${GITHUB_REF#*/*/}"
+          echo "GIT_HEAD=${GIT_HEAD//\//__}" >> $GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: "USCSandbox-${{ matrix.configuration }}-${{ steps.git-head-check.outputs.GIT_HEAD }}-${{ matrix.os }}"
+          path: ./USCSandbox/bin/${{ matrix.configuration }}/net8.0/*
