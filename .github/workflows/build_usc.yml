@@ -15,6 +15,9 @@ jobs:
           - ubuntu-latest
           - windows-latest
           - macos-latest
+        configuration:
+          - Debug
+          - Release
     steps:
       - uses: actions/checkout@v6
 
@@ -29,7 +32,7 @@ jobs:
 
       - name: Build solution
         run: |
-          dotnet build -c Release
+          dotnet build -c ${{ matrix.configuration }}
 
       - name: Get git HEAD
         id: git-head-check
@@ -40,5 +43,5 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: "USCSandbox-${{ steps.git-head-check.outputs.GIT_REF }}-${{ matrix.os }}"
+          name: "USCSandbox-${{ matrix.configuration }}-${{ steps.git-head-check.outputs.GIT_REF }}-${{ matrix.os }}"
           path: ./USCSandbox/bin/Release/net8.0/*
