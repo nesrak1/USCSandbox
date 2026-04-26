@@ -43,5 +43,5 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: "USCSandbox-${{ matrix.configuration }}-${{ steps.git-head-check.outputs.GIT_REF }}-${{ matrix.os }}"
+          name: "USCSandbox-${{ matrix.configuration }}-${{ steps.git-head-check.outputs.GIT_HEAD }}-${{ matrix.os }}"
           path: ./USCSandbox/bin/${{ matrix.configuration }}/net8.0/*
